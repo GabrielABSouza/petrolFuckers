@@ -1,0 +1,458 @@
+{
+  "data_source": "ANEEL SIGA - Sistema de Informacoes de Geracao",
+  "data_date": "2026-05-01 (monthly) / 2026-05-09 (daily)",
+  "total_projects": 25407,
+  "csv_url": "https://dadosabertos.aneel.gov.br/dataset/6d90b77c-c5f5-4d81-bdec-7bc619494bb9/resource/11ec447d-698d-4ab8-977f-b424d5deee6a/download/siga-empreendimentos-geracao.csv",
+  "daily_csv_url": "https://dadosabertos.aneel.gov.br/dataset/6d90b77c-c5f5-4d81-bdec-7bc619494bb9/resource/2f65a1b0-19b8-4360-8238-b34ab4693d55/download/siga-empreendimentos-geracao-diario.csv",
+  "columns": [
+    "DatGeracaoConjuntoDados",
+    "NomEmpreendimento",
+    "IdeNucleoCEG",
+    "CodCEG",
+    "SigUFPrincipal",
+    "SigTipoGeracao",
+    "DscFaseUsina",
+    "DscOrigemCombustivel",
+    "DscFonteCombustivel",
+    "DscTipoOutorga",
+    "NomFonteCombustivel",
+    "DatEntradaOperacao",
+    "MdaPotenciaOutorgadaKw",
+    "MdaPotenciaFiscalizadaKw",
+    "MdaGarantiaFisicaKw",
+    "IdcGeracaoQualificada",
+    "NumCoordNEmpreendimento",
+    "NumCoordEEmpreendimento",
+    "DatInicioVigencia",
+    "DatFimVigencia",
+    "DscPropriRegimePariticipacao",
+    "DscSubBacia",
+    "DscMuninicpios"
+  ],
+  "installed_capacity_by_source": {
+    "UHE": {
+      "count": 216,
+      "capacity_mw": 103271.39999999997,
+      "description": "Hydroelectric (Usina Hidrelétrica)"
+    },
+    "UTE": {
+      "count": 3051,
+      "capacity_mw": 49571.09999999963,
+      "description": "Thermal (Usina Termelétrica)"
+    },
+    "EOL": {
+      "count": 1136,
+      "capacity_mw": 34906.799999999974,
+      "description": "Wind (Eólica)"
+    },
+    "UFV": {
+      "count": 17175,
+      "capacity_mw": 22310.79999999983,
+      "description": "Solar Photovoltaic (Usina Fotovoltaica)"
+    },
+    "PCH": {
+      "count": 432,
+      "capacity_mw": 6068.400000000003,
+      "description": "Small Hydro (Pequena Central Hidrelétrica)"
+    },
+    "UTN": {
+      "count": 2,
+      "capacity_mw": 1990.0,
+      "description": "Nuclear (Usina Termonuclear)"
+    },
+    "CGH": {
+      "count": 709,
+      "capacity_mw": 918.5000000000003,
+      "description": "Micro Hydro (Central Geradora Hidrelétrica)"
+    }
+  },
+  "total_installed_capacity_mw": 219037.0,
+  "installed_capacity_by_state": {
+    "SP": {
+      "count": 1174,
+      "capacity_mw": 25787.599999999966,
+      "sources": {
+        "UHE": 14512.599999999999,
+        "UTE": 9677.300000000032,
+        "PCH": 295.59999999999997,
+        "CGH": 83.6,
+        "UFV": 1218.4999999999986,
+        "EOL": 0.0
+      }
+    },
+    "MG": {
+      "count": 939,
+      "capacity_mw": 25173.29999999996,
+      "sources": {
+        "PCH": 771.0,
+        "UTE": 2978.6999999999935,
+        "UHE": 12593.900000000003,
+        "CGH": 168.3,
+        "EOL": 0.2,
+        "UFV": 8661.200000000015
+      }
+    },
+    "PA": {
+      "count": 13200,
+      "capacity_mw": 22835.500000000004,
+      "sources": {
+        "UTE": 437.1999999999999,
+        "UHE": 22330.7,
+        "CGH": 3.2,
+        "PCH": 60.0,
+        "UFV": 4.4
+      }
+    },
+    "BA": {
+      "count": 617,
+      "capacity_mw": 21979.00000000001,
+      "sources": {
+        "UTE": 1459.6000000000017,
+        "CGH": 10.2,
+        "UHE": 5612.599999999999,
+        "PCH": 85.8,
+        "EOL": 11840.199999999993,
+        "UFV": 2970.599999999999
+      }
+    },
+    "PR": {
+      "count": 305,
+      "capacity_mw": 17663.09999999998,
+      "sources": {
+        "PCH": 591.8000000000001,
+        "CGH": 103.8,
+        "UHE": 15028.500000000004,
+        "UTE": 1903.8,
+        "EOL": 2.5,
+        "UFV": 32.70000000000002
+      }
+    },
+    "RN": {
+      "count": 435,
+      "capacity_mw": 13171.099999999991,
+      "sources": {
+        "UTE": 292.5,
+        "EOL": 10761.599999999991,
+        "UFV": 2112.2999999999997,
+        "PCH": 4.7
+      }
+    },
+    "RJ": {
+      "count": 218,
+      "capacity_mw": 12682.600000000011,
+      "sources": {
+        "UTN": 1990.0,
+        "PCH": 260.59999999999997,
+        "CGH": 17.6,
+        "UHE": 1015.1,
+        "UTE": 9364.099999999999,
+        "EOL": 28.1,
+        "UFV": 7.099999999999998
+      }
+    },
+    "RS": {
+      "count": 461,
+      "capacity_mw": 10018.10000000001,
+      "sources": {
+        "UHE": 4815.0,
+        "CGH": 83.49999999999999,
+        "PCH": 756.3,
+        "UTE": 2226.2,
+        "EOL": 2084.2000000000003,
+        "UFV": 52.90000000000002
+      }
+    },
+    "GO": {
+      "count": 184,
+      "capacity_mw": 8293.599999999997,
+      "sources": {
+        "UHE": 5386.599999999999,
+        "PCH": 539.8,
+        "CGH": 11.8,
+        "UTE": 1993.2000000000003,
+        "UFV": 362.20000000000005
+      }
+    },
+    "RO": {
+      "count": 74,
+      "capacity_mw": 8284.400000000007,
+      "sources": {
+        "CGH": 31.3,
+        "UTE": 485.70000000000005,
+        "PCH": 141.4,
+        "UHE": 7608.3,
+        "UFV": 17.7
+      }
+    },
+    "PI": {
+      "count": 227,
+      "capacity_mw": 7096.800000000008,
+      "sources": {
+        "UHE": 237.3,
+        "EOL": 4415.299999999999,
+        "UTE": 40.4,
+        "UFV": 2403.8
+      }
+    },
+    "CE": {
+      "count": 207,
+      "capacity_mw": 6562.799999999999,
+      "sources": {
+        "UTE": 1740.4999999999995,
+        "EOL": 2690.2999999999997,
+        "UFV": 2131.999999999999
+      }
+    },
+    "PE": {
+      "count": 206,
+      "capacity_mw": 6334.900000000003,
+      "sources": {
+        "UHE": 1479.6,
+        "PCH": 13.5,
+        "UTE": 2060.7,
+        "CGH": 10.300000000000002,
+        "EOL": 1265.4999999999998,
+        "UFV": 1505.2999999999995
+      }
+    },
+    "SC": {
+      "count": 479,
+      "capacity_mw": 5140.4000000000115,
+      "sources": {
+        "CGH": 267.29999999999995,
+        "UHE": 2781.9,
+        "PCH": 693.6000000000001,
+        "UTE": 1119.9999999999995,
+        "EOL": 250.6,
+        "UFV": 27.00000000000002
+      }
+    },
+    "SE": {
+      "count": 47,
+      "capacity_mw": 4892.900000000002,
+      "sources": {
+        "UHE": 3162.6,
+        "UTE": 1694.9999999999995,
+        "EOL": 34.5,
+        "UFV": 0.8
+      }
+    },
+    "MA": {
+      "count": 55,
+      "capacity_mw": 4486.099999999999,
+      "sources": {
+        "UTE": 2968.9,
+        "UHE": 1087.0,
+        "UFV": 4.2,
+        "EOL": 426.00000000000006
+      }
+    },
+    "MT": {
+      "count": 248,
+      "capacity_mw": 4290.299999999999,
+      "sources": {
+        "CGH": 79.10000000000001,
+        "PCH": 1125.2999999999997,
+        "UTE": 1130.5000000000005,
+        "UHE": 1927.6999999999998,
+        "UFV": 27.7
+      }
+    },
+    "MS": {
+      "count": 2965,
+      "capacity_mw": 3438.099999999997,
+      "sources": {
+        "CGH": 21.199999999999996,
+        "PCH": 293.9,
+        "UTE": 3034.499999999999,
+        "UHE": 77.5,
+        "UFV": 11.0
+      }
+    },
+    "PB": {
+      "count": 91,
+      "capacity_mw": 2446.5,
+      "sources": {
+        "UTE": 624.2,
+        "EOL": 1107.8000000000002,
+        "UFV": 714.5
+      }
+    },
+    "AM": {
+      "count": 159,
+      "capacity_mw": 2188.900000000001,
+      "sources": {
+        "UTE": 1912.3000000000015,
+        "UHE": 274.8,
+        "UFV": 1.8
+      }
+    },
+    "TO": {
+      "count": 62,
+      "capacity_mw": 1983.1999999999994,
+      "sources": {
+        "PCH": 202.70000000000002,
+        "CGH": 19.6,
+        "UHE": 1644.5,
+        "UTE": 110.2,
+        "UFV": 6.199999999999999
+      }
+    },
+    "ES": {
+      "count": 102,
+      "capacity_mw": 1822.6999999999994,
+      "sources": {
+        "PCH": 232.4,
+        "UTE": 1248.7999999999993,
+        "CGH": 3.2,
+        "UHE": 313.3,
+        "UFV": 25.000000000000004
+      }
+    },
+    "AP": {
+      "count": 11,
+      "capacity_mw": 973.5,
+      "sources": {
+        "UHE": 941.9,
+        "UTE": 27.599999999999998,
+        "UFV": 4.0
+      }
+    },
+    "AL": {
+      "count": 52,
+      "capacity_mw": 783.2999999999996,
+      "sources": {
+        "CGH": 4.5,
+        "UHE": 400.0,
+        "UTE": 374.7000000000001,
+        "UFV": 4.1
+      }
+    },
+    "RR": {
+      "count": 149,
+      "capacity_mw": 515.2000000000002,
+      "sources": {
+        "UTE": 503.0,
+        "UHE": 10.0,
+        "UFV": 2.2
+      }
+    },
+    "AC": {
+      "count": 30,
+      "capacity_mw": 142.89999999999998,
+      "sources": {
+        "UTE": 142.2,
+        "UFV": 0.7
+      }
+    },
+    "DF": {
+      "count": 24,
+      "capacity_mw": 50.199999999999996,
+      "sources": {
+        "UHE": 30.0,
+        "UTE": 19.3,
+        "UFV": 0.9
+      }
+    }
+  },
+  "expansion_pipeline": {
+    "in_construction": {
+      "PCH": {
+        "count": 24,
+        "capacity_mw": 329.6
+      },
+      "UTE": {
+        "count": 30,
+        "capacity_mw": 4840.599999999999
+      },
+      "UTN": {
+        "count": 1,
+        "capacity_mw": 1350.0
+      },
+      "EOL": {
+        "count": 47,
+        "capacity_mw": 1432.7
+      },
+      "UHE": {
+        "count": 1,
+        "capacity_mw": 48.4
+      },
+      "UFV": {
+        "count": 55,
+        "capacity_mw": 2659.9000000000005
+      },
+      "CGH": {
+        "count": 1,
+        "capacity_mw": 4.4
+      }
+    },
+    "not_started": {
+      "CGH": {
+        "count": 8,
+        "capacity_mw": 21.6
+      },
+      "UHE": {
+        "count": 4,
+        "capacity_mw": 211.4
+      },
+      "PCH": {
+        "count": 84,
+        "capacity_mw": 1061.7
+      },
+      "UTE": {
+        "count": 32,
+        "capacity_mw": 945.2
+      },
+      "UFV": {
+        "count": 1994,
+        "capacity_mw": 86959.30000000031
+      },
+      "EOL": {
+        "count": 405,
+        "capacity_mw": 16373.699999999986
+      }
+    }
+  },
+  "major_plants_with_coords": 2604,
+  "all_plants_with_coords": 22721,
+  "transmission_data": {
+    "source": "ANEEL SIGET - Sistema de Gestao da Transmissao",
+    "transmission_lines_csv": "https://dadosabertos.aneel.gov.br/dataset/beefe870-7452-4830-a7b0-6611e3d5eff6/resource/89caca18-e9a8-484c-8772-c67b456d801a/download/siget-contrato-modulolinhatransmissao-subestacaoorigem-subestacaodestino.csv",
+    "substation_equipment_csv": "https://dadosabertos.aneel.gov.br/dataset/beefe870-7452-4830-a7b0-6611e3d5eff6/resource/caec5e88-c904-45e5-bde4-d7e96ef139b6/download/siget-contrato-moduloequipamento-subestacao.csv",
+    "full_project_csv": "https://dadosabertos.aneel.gov.br/dataset/beefe870-7452-4830-a7b0-6611e3d5eff6/resource/a1366325-1071-4eeb-94bd-27915747b177/download/siget-contrato-empreendimento-obra-modulo.csv",
+    "unique_transmission_projects": 692,
+    "transmission_line_records": 1160,
+    "substation_equipment_records": 2305,
+    "equipment_types": {
+      "Transformadores de Potência": 822,
+      "Reatores de Linha": 813,
+      "Reatores de Barra": 355,
+      "Transformadores de Aterramento": 71,
+      "Bancos de Capacitores": 66,
+      "Capacitores Série": 42,
+      "Compensadores Síncronos": 39,
+      "Bancos de Filtros": 36,
+      "Compensadores Estáticos": 31,
+      "Conversoras": 30
+    },
+    "tl_columns": [
+      "NomSubestacaoOrigem",
+      "NomSubestacaoDestino",
+      "SigUFSubestacaoOrigem",
+      "SigUFSubestacaoDestino",
+      "NumTensaoBaseLinhaTransm",
+      "NumEtnLinTms (extensão km)",
+      "NumCcuLinTms (circuitos)",
+      "QtdTorLinTms (torres)",
+      "DscSitLinTms (status)"
+    ]
+  },
+  "epe_resources": {
+    "PDE_2035": "https://www.epe.gov.br/pt/publicacoes-dados-abertos/publicacoes/plano-decenal-de-expansao-de-energia-2035",
+    "Anuario_2025_workbook": "https://www.epe.gov.br/sites-pt/publicacoes-dados-abertos/publicacoes/PublicacoesArquivos/publicacao-160/topico-168/anuario-workbook.xlsx",
+    "Anuario_interativo": "https://dashboard.epe.gov.br/apps/anuario",
+    "BEN": "https://www.epe.gov.br/pt/publicacoes-dados-abertos/publicacoes/balanco-energetico-nacional-ben",
+    "WebMap_EPE": "https://gisepeprd2.epe.gov.br/WebMapEPE/",
+    "SIGA_dashboard": "https://app.powerbi.com/view?r=eyJrIjoiNjc4OGYyYjQtYWM2ZC00YjllLWJlYmEtYzdkNTQ1MTc1NjM2IiwidCI6IjQwZDZmOWI4LWVjYTctNDZhMi05MmQ0LWVhNGU5YzAxNzBlMSIsImMiOjR9"
+  }
+}

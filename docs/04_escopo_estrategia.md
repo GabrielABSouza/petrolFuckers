@@ -2,6 +2,8 @@
 
 > **Propósito:** convergir a equipe em **um** escopo MVP defensável em 48h. Não é plano de execução — é o framework de decisão que precede o código.
 
+> **Atualizado:** as recomendações abaixo foram escritas como heurísticas antes da EDA. Agora têm contraponto empírico em [`06_eda_insights.md`](06_eda_insights.md) — em particular o achado de que **51% da capacidade de biometano está ociosa** e o **mismatch de 154 GW renováveis sem indústria eletrointensiva**. Ler `06` **antes** da reunião das 7 decisões.
+
 ---
 
 ## Restrições de realidade
