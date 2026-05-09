@@ -20,6 +20,8 @@
 | 05 | [Perguntas abertas](05_perguntas_abertas.md) | Gaps a fechar com mentor/organização. |
 | 06 | [EDA insights](06_eda_insights.md) | **Análise empírica** das fontes baixadas. Mismatches energia↔indústria, pontos cegos da PID, 3 caminhos de MVP. |
 | 07 | [SAFMaps integration](07_safmaps_integration.md) | **Achado crítico** — 72 camadas WFS públicas (UNICAMP/Embraer/Boeing/Agroicone). Inclui `steel_plants` com dados de flaring + camadas socioambientais (slavery_likely, child_labour, mhdi). |
+| 08 | [IBGE dados abertos](08_ibge_dados.md) | **Especificação do dataframe mestre** — APIs validadas (APISIDRA + GeoServer 9.5k camadas), 15 tabelas SIDRA prioritárias, ~50 features por município, indicadores derivados pra score MCDA. |
+| 09 | [Benchmark de mercado](09_benchmark_mercado.md) | Soluções comparáveis (CarbonTech, WayCarbon, Watershed, ClimateView, Google EIE etc.) + espaço de diferenciação para a PID. |
 
 ## Estrutura física do repo
 

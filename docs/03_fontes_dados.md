@@ -3,6 +3,8 @@
 > Base: anexo `BANCO_DADOS_PID.docx` (22 fontes oficiais) + Atlas 2025 (referências bibliográficas) + PID v2.0.
 
 > **Atualização (09/mai):** descoberto **SAFMaps com GeoServer público** — 72 camadas WFS sobre cadeia SAF brasileira, inclui `steel_plants` com dados de flaring e camadas socioambientais. Ver [`07_safmaps_integration.md`](07_safmaps_integration.md). É a fonte mais alavancada que temos hoje.
+>
+> **Atualização (09/mai, tarde):** consolidado o ecossistema **IBGE de dados abertos** (APISIDRA + GeoServer 9.526 camadas). Ver [`08_ibge_dados.md`](08_ibge_dados.md) — inclui especificação do dataframe mestre, 15 tabelas SIDRA prioritárias e indicadores derivados pra score MCDA.
 
 ## A PID em si
 
