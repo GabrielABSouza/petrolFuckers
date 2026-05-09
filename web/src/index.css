@@ -1,0 +1,200 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #05274b;
+  --ink-deeper: #031a33;
+  --ink-deepest: #020f1f;
+  --paper: #f4f1ea;
+  --bone: #e8e3d6;
+  --amber: #fcc20a;
+  --ember: #fc6926;
+  --cinder: #fa441a;
+  --graphite: #18212f;
+  --hairline: rgba(244, 241, 234, 0.08);
+  --hairline-strong: rgba(244, 241, 234, 0.18);
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  background: var(--ink-deeper);
+  color: var(--paper);
+  font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "ss01", "ss02", "cv11";
+}
+
+/* Grain texture overlay — gives institutional 'paper' depth */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Hairlines — institutional dividers, 0.5px feel */
+.hairline {
+  border-color: var(--hairline);
+}
+.hairline-strong {
+  border-color: var(--hairline-strong);
+}
+
+/* Slider — track grossa com fill amber até o thumb */
+input[type="range"].radar-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  outline: none;
+  cursor: pointer;
+  border: none;
+  /* background setado inline (gradient amber → bg até o valor) */
+}
+input[type="range"].radar-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  background: transparent;
+  border: none;
+}
+input[type="range"].radar-slider::-moz-range-track {
+  height: 6px;
+  background: transparent;
+  border: none;
+}
+input[type="range"].radar-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--amber);
+  border: 2px solid var(--ink-deepest);
+  cursor: grab;
+  border-radius: 50%;
+  margin-top: -4px;
+  transition: transform 0.12s ease;
+}
+input[type="range"].radar-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+input[type="range"].radar-slider::-webkit-slider-thumb:active {
+  transform: scale(1.25);
+  cursor: grabbing;
+}
+input[type="range"].radar-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: var(--amber);
+  border: 2px solid var(--ink-deepest);
+  cursor: grab;
+  border-radius: 50%;
+}
+
+/* Scrollbar — sober, institutional */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--hairline-strong);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--amber);
+}
+
+/* Selection */
+::selection {
+  background: var(--amber);
+  color: var(--ink-deepest);
+}
+
+/* Tabular numbers everywhere they belong */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Display heading micro-tracking */
+.font-display {
+  font-feature-settings: "ss01", "salt", "lnum";
+  font-optical-sizing: auto;
+}
+
+/* Pulse glow for top-ranked dot */
+@keyframes glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px var(--amber));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px var(--amber)) drop-shadow(0 0 20px rgba(252, 194, 10, 0.4));
+  }
+}
+.glow {
+  animation: glow 2.4s ease-in-out infinite;
+}
+
+/* Diagonal hatch for "mocked" badge */
+.hatch {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 3px,
+    rgba(252, 194, 10, 0.18) 3px,
+    rgba(252, 194, 10, 0.18) 4px
+  );
+}
+
+/* Map background — subtle vertical scan-line */
+.scan-lines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 2px,
+    rgba(244, 241, 234, 0.012) 2px,
+    rgba(244, 241, 234, 0.012) 3px
+  );
+}
+
+/* Topographic dot grid for the map background */
+.topo-dots {
+  background-image: radial-gradient(
+    circle at center,
+    rgba(244, 241, 234, 0.045) 0.7px,
+    transparent 1px
+  );
+  background-size: 14px 14px;
+}
+
+/* Ticker animation utility */
+.ticker {
+  animation: tick 40s linear infinite;
+}
+@keyframes tick {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Focus ring */
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 1px solid var(--amber);
+  outline-offset: 2px;
+}
