@@ -19,6 +19,7 @@
 | 04 | [Escopo e estratégia](04_escopo_estrategia.md) | **Documento mestre**. Framework de 7 decisões + alternativas. |
 | 05 | [Perguntas abertas](05_perguntas_abertas.md) | Gaps a fechar com mentor/organização. |
 | 06 | [EDA insights](06_eda_insights.md) | **Análise empírica** das fontes baixadas. Mismatches energia↔indústria, pontos cegos da PID, 3 caminhos de MVP. |
+| 07 | [SAFMaps integration](07_safmaps_integration.md) | **Achado crítico** — 72 camadas WFS públicas (UNICAMP/Embraer/Boeing/Agroicone). Inclui `steel_plants` com dados de flaring + camadas socioambientais (slavery_likely, child_labour, mhdi). |
 
 ## Estrutura física do repo
 

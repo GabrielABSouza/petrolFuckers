@@ -2,6 +2,8 @@
 
 > Base: anexo `BANCO_DADOS_PID.docx` (22 fontes oficiais) + Atlas 2025 (referências bibliográficas) + PID v2.0.
 
+> **Atualização (09/mai):** descoberto **SAFMaps com GeoServer público** — 72 camadas WFS sobre cadeia SAF brasileira, inclui `steel_plants` com dados de flaring e camadas socioambientais. Ver [`07_safmaps_integration.md`](07_safmaps_integration.md). É a fonte mais alavancada que temos hoje.
+
 ## A PID em si
 
 - **URL pública:** https://emaisenergia.org/pid
