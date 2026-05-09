@@ -2,7 +2,9 @@
 
 > Evolução conceitual da PID do Instituto E+. Da visualização à decisão: priorize onde investir, destravar rede e acelerar energia limpa no Brasil.
 
-Stack: **React 18 + Vite 5 + Tailwind 3 + Motion 11 + lucide-react**.
+Stack: **React 18 + Vite 5 + Tailwind 3 + Motion 11 + d3-geo + topojson-client + lucide-react**.
+
+> **Por que cada decisão foi tomada** (produto, UX, stack, arquitetura): ver [`docs/12_decisoes_arquitetura_radar_pid.md`](../docs/12_decisoes_arquitetura_radar_pid.md).
 
 ## Rodando localmente
 

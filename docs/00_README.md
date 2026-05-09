@@ -23,6 +23,7 @@
 | 08 | [IBGE dados abertos](08_ibge_dados.md) | **Especificação do dataframe mestre** — APIs validadas (APISIDRA + GeoServer 9.5k camadas), 15 tabelas SIDRA prioritárias, ~50 features por município, indicadores derivados pra score MCDA. |
 | 09 | [Benchmark de mercado](09_benchmark_mercado.md) | Soluções comparáveis (CarbonTech, WayCarbon, Watershed, ClimateView, Google EIE etc.) + espaço de diferenciação para a PID. |
 | 11 | [Convergência pública](11_convergencia_incentivos_publicos.md) | Camada de incentivos, licitações, financiamento público e obras para cruzar oportunidade energética com instrumentos governamentais. |
+| 12 | [Decisões de arquitetura — Radar PID](12_decisoes_arquitetura_radar_pid.md) | **Por que o protótipo `web/` ficou do jeito que ficou.** Decisões de produto, UX, layout, estética, stack técnica, arquitetura de componentes, trade-offs aceitos. Útil pra defesa do pitch. |
 
 ## Estrutura física do repo
 
