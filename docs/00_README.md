@@ -14,10 +14,21 @@
 | # | Doc | Quando ler |
 |---|---|---|
 | 01 | [Briefing do hackathon](01_briefing.md) | Onboarding. Regras, datas, critérios, trilhas, premiação. |
-| 02 | [Síntese do Atlas E+](02_atlas_sintese.md) | Antes de ideação. Tese do E+ sobre PID, indústrias-alvo, clusters, Powershoring/Consenso de Belém. |
-| 03 | [Fontes de dados](03_fontes_dados.md) | Quando for desenhar o que consumir. 22 bases oficiais + PID. |
-| 04 | [Escopo e estratégia](04_escopo_estrategia.md) | **Documento mestre**. Framework de 7 decisões pré-código + alternativas a debater com a equipe. |
+| 02 | [Síntese do Atlas E+](02_atlas_sintese.md) | Antes de ideação. Tese do E+, indústrias-alvo, clusters, Powershoring/Consenso de Belém. |
+| 03 | [Fontes de dados](03_fontes_dados.md) | Catálogo das 22 bases oficiais + PID. |
+| 04 | [Escopo e estratégia](04_escopo_estrategia.md) | **Documento mestre**. Framework de 7 decisões + alternativas. |
 | 05 | [Perguntas abertas](05_perguntas_abertas.md) | Gaps a fechar com mentor/organização. |
+| 06 | [EDA insights](06_eda_insights.md) | **Análise empírica** das fontes baixadas. Mismatches energia↔indústria, pontos cegos da PID, 3 caminhos de MVP. |
+
+## Estrutura física do repo
+
+| Pasta | Conteúdo |
+|---|---|
+| `docs/` | Documentação estratégica e analítica (este diretório). |
+| `data/raw/` | CSVs brutos (ANEEL SIGA, ANEEL SIGET, ANP Biometano). |
+| `data/processed/` | Sumários e agregações (`ANEEL_SIGA_resumo.json`, `agente_eda_findings.md`). |
+| `prompts/` | Prompts usados em agentes externos. |
+| `references/` | PDF/docx grandes — gitignored, só local. |
 
 ---
 
@@ -27,7 +38,10 @@
 - [x] Regulamento oficial lido — datas e critérios reais consolidados em `01_briefing.md`
 - [x] Atlas Industrial 2025 lido (82p, PDF)
 - [x] Banco de dados PID mapeado (22 fontes)
-- [ ] Acesso à PID v2.0 (emaisenergia.org/pid) — primeira tarefa da equipe ao kickoff
+- [x] EDA inicial concluída — ver `06_eda_insights.md`
+- [x] Dados-chave baixados: ANEEL SIGA (25.407 empreendimentos), ANEEL SIGET (1.160 trechos), ANP Biometano (19 plantas)
+- [x] Estrutura real da PID v2.0 documentada via LEIAME oficial (`references/PID-LEIAME-v.2.pdf`)
+- [ ] Inspecionar PID ao vivo via navegador (DevTools → ver se há layer service REST exposto)
 - [ ] Definir trilha (UX / Análise / Aplicação)
 - [ ] Definir persona-alvo
-- [ ] Convergir em escopo MVP (ver 04)
+- [ ] Convergir em escopo MVP (ver `04` informado por `06`)

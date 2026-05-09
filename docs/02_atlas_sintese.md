@@ -10,24 +10,39 @@ O Brasil tem **vantagem competitiva única** para se tornar líder global em eco
 2. Recursos naturais abundantes (biomassa, minerais críticos, vento, sol).
 3. Base industrial consolidada (mas hoje carbono-intensiva em vários setores).
 
-## A PID em uma frase
+## A PID v2.0 — estrutura real (segundo LEIAME oficial)
 
-Ferramenta online que **integra dados de energia + indústria + infraestrutura em camadas geográficas**, permitindo identificar **clusters industriais verdes** viáveis no território brasileiro.
+> Fonte: `references/PID-LEIAME-v.2.pdf` (Guia do Usuário oficial, Instituto E+).
 
-- URL pública: `www.emaisenergia.org/pid`
+A PID é um **visualizador GIS** publicado no **ArcGIS Experience** (stack Esri), com 4 abas:
+
+| Aba | Conteúdo | Fontes de dados |
+|---|---|---|
+| **Infraestrutura** | Hidrelétricas (op/constr/planej), Sistemas Isolados (fora do SIN), Linhas de Transmissão, Gasodutos, Eólicas, Solares — pop-up de atributos por clique | SIGEL-ANEEL, IDE-Sisema (MG), EPE WebMap |
+| **Indústrias** | Consumo (MWh) por tipo de indústria, número de indústrias **agregadas por região**, classificação setorial colorida | IBGE, MapBiomas |
+| **Hidrogênio** | HUBs identificados, projetos avançados (em implantação), projetos planejados | IEA, EPE |
+| **PID** (combinador) | Sobrepõe livremente camadas das 3 abas, ferramentas de medição (distância/área), salvar mapa como **imagem** (JPG/PNG/PDF) | (combina as outras) |
+
+- URL pública: `www.emaisenergia.org/pid` (redireciona para Experience ArcGIS).
 - Versão atual: 2.0 (out/2025).
-- Output principal: sobreposição de camadas → áreas com simbiose entre oferta de energia limpa e demanda industrial.
+- Output efetivo: **screenshot do mapa com filtros** — não exporta CSV nem JSON, não tem API.
 
-## Metodologia em camadas
+### Lacunas funcionais explícitas (relevantes para o MVP)
 
-A PID sobrepõe 4 famílias de camadas:
+A PID **não** entrega: score, ranking, recomendação, simulação what-if, custo (LCOE/LCOH/logístico), risco socioambiental cruzado, comparação lado-a-lado, indicadores derivados (ociosidade, intensidade, distância à infra), exportação de dados estruturados, dados planta-a-planta no setor industrial (estão agregados por região).
+
+Essas lacunas = oportunidade do hackathon.
+
+## Metodologia conceitual do Atlas (4 camadas)
+
+> Não confundir com as 4 abas da PID v2.0 acima. Essa é a **abstração editorial do Atlas** (p.10–11): explica o método de identificação de clusters industriais verdes — mas a PID expõe esses dados em 3 abas temáticas + 1 combinador, não em 4 camadas dedicadas.
 
 1. **Infraestrutura** de transporte e energia (gasodutos, ferrovias, portos, linhas de transmissão).
-2. **Disponibilidade de biomassa**.
+2. **Disponibilidade de biomassa** (no Atlas; na PID atual entra como subcamada de Indústrias/Infra, sem aba própria).
 3. **Localização de indústrias** existentes.
 4. **Potenciais de energias renováveis** (eólica, solar, hidro).
 
-A interseção dessas camadas define **clusters industriais verdes**.
+A interseção dessas camadas, segundo o Atlas, define **clusters industriais verdes**.
 
 ## Indústrias-alvo (9 setores)
 

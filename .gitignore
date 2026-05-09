@@ -3,7 +3,8 @@
 .idea/
 .vscode/
 
-# Inputs locais grandes (não versionar — ficam em /Volumes/ExtremePro/hackaton_E+/)
+# Materiais de referência grandes (PDFs/docx originais ficam locais)
+references/
 *.pdf
 *.docx
 
@@ -21,11 +22,10 @@ node_modules/
 dist/
 build/
 
-# Dados intermediários
-data/raw/
-data/processed/
+# Outputs binários efêmeros (CSVs e JSONs em data/ SÃO versionados)
 *.parquet
 *.feather
+.cache/
 
 # Env
 .env
