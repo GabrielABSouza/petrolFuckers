@@ -19,17 +19,24 @@
 | 04 | [Escopo e estratégia](04_escopo_estrategia.md) | **Documento mestre**. Framework de 7 decisões + alternativas. |
 | 05 | [Perguntas abertas](05_perguntas_abertas.md) | Gaps a fechar com mentor/organização. |
 | 06 | [EDA insights](06_eda_insights.md) | **Análise empírica** das fontes baixadas. Mismatches energia↔indústria, pontos cegos da PID, 3 caminhos de MVP. |
-| 07 | [SAFMaps integration](07_safmaps_integration.md) | **Achado crítico** — 72 camadas WFS públicas (UNICAMP/Embraer/Boeing/Agroicone). Inclui `steel_plants` com dados de flaring + camadas socioambientais (slavery_likely, child_labour, mhdi). |
-| 08 | [IBGE dados abertos](08_ibge_dados.md) | **Especificação do dataframe mestre** — APIs validadas (APISIDRA + GeoServer 9.5k camadas), 15 tabelas SIDRA prioritárias, ~50 features por município, indicadores derivados pra score MCDA. |
-| 09 | [Benchmark de mercado](09_benchmark_mercado.md) | Soluções comparáveis (CarbonTech, WayCarbon, Watershed, ClimateView, Google EIE etc.) + espaço de diferenciação para a PID. |
-| 11 | [Convergência pública](11_convergencia_incentivos_publicos.md) | Camada de incentivos, licitações, financiamento público e obras para cruzar oportunidade energética com instrumentos governamentais. |
-| 12 | [Decisões de arquitetura — Radar PID](12_decisoes_arquitetura_radar_pid.md) | **Por que o protótipo `web/` ficou do jeito que ficou.** Decisões de produto, UX, layout, estética, stack técnica, arquitetura de componentes, trade-offs aceitos. Útil pra defesa do pitch. |
+| 07a | [SAFMaps integration](07_safmaps_integration.md) | **Achado crítico** — 72 camadas WFS públicas (UNICAMP/Embraer/Boeing/Agroicone). Inclui `steel_plants` com dados de flaring + camadas socioambientais (slavery_likely, child_labour, mhdi). |
+| 07b | [Discovery de dados de transição energética](07_discovery_data_transicao_energetica.md) | Inventário imersivo da pasta `data/` e hipóteses que ANEEL, SIGET e ANP Biometano sustentam. |
+| 08a | [IBGE dados abertos](08_ibge_dados.md) | **Especificação do dataframe mestre** — APIs validadas (APISIDRA + GeoServer 9.5k camadas), 15 tabelas SIDRA prioritárias, ~50 features por município, indicadores derivados pra score MCDA. |
+| 08b | [Discovery e transparência do score PID](08_discovery_transparencia_score_pid.md) | Formula a lacuna de score/ranking/recomendação da PID e propõe regras de transparência, confiança e evidência. |
+| 09a | [Benchmark de mercado](09_benchmark_mercado.md) | Soluções comparáveis (CarbonTech, WayCarbon, Watershed, ClimateView, Google EIE etc.) + espaço de diferenciação para a PID. |
+| 09b | [Red team de riscos do score PID](09_red_team_riscos_solucao_score_pid.md) | Teste adversarial da proposta de score: impacto indireto, dados ausentes, falsa precisão e riscos narrativos. |
+| 10 | [Discovery de soluções fora da caixa](10_discovery_solucoes_fora_da_caixa.md) | Explora alternativas com impacto social mais direto: bioenergia rural, saúde pública, resiliência municipal, escolas e justiça energética. |
+| 11a | [Relatório de afunilamento de escopo](11_relatorio_afunilamento_escopo_pid.md) | Fechamento do segundo diamante: escopo final do Radar PID, dimensões do score, exclusões e demo sugerida. |
+| 11b | [Convergência pública](11_convergencia_incentivos_publicos.md) | Camada de incentivos, licitações, financiamento público e obras para cruzar oportunidade energética com instrumentos governamentais. |
+| 12a | [Decisões de arquitetura — Radar PID](12_decisoes_arquitetura_radar_pid.md) | **Por que o protótipo `web/` ficou do jeito que ficou.** Decisões de produto, UX, layout, estética, stack técnica, arquitetura de componentes, trade-offs aceitos. Útil pra defesa do pitch. |
+| 12b | [Double Diamond — metodologia aplicada](12_double_diamond_metodologia.md) | Consolida as etapas de descobrir, definir, desenvolver e entregar a partir da documentação em `docs`. |
 
 ## Estrutura física do repo
 
 | Pasta | Conteúdo |
 |---|---|
 | `docs/` | Documentação estratégica e analítica (este diretório). |
+| `web/` | Front-end do Radar PID (protótipo). Ver `12_decisoes_arquitetura_radar_pid.md`. |
 | `data/raw/` | CSVs brutos (ANEEL SIGA, ANEEL SIGET, ANP Biometano). |
 | `data/processed/` | Sumários e agregações (`ANEEL_SIGA_resumo.json`, `agente_eda_findings.md`). |
 | `prompts/` | Prompts usados em agentes externos. |
@@ -46,6 +53,7 @@
 - [x] EDA inicial concluída — ver `06_eda_insights.md`
 - [x] Dados-chave baixados: ANEEL SIGA (25.407 empreendimentos), ANEEL SIGET (1.160 trechos), ANP Biometano (19 plantas)
 - [x] Estrutura real da PID v2.0 documentada via LEIAME oficial (`references/PID-LEIAME-v.2.pdf`)
+- [x] Processo Double Diamond documentado — ver `12_double_diamond_metodologia.md`
 - [ ] Inspecionar PID ao vivo via navegador (DevTools → ver se há layer service REST exposto)
 - [ ] Definir trilha (UX / Análise / Aplicação)
 - [ ] Definir persona-alvo
