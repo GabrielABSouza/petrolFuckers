@@ -1,44 +1,49 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef, useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { projeta, corDoScore } from "./scoring";
+import { geoMercator, geoPath } from "d3-geo";
+import { feature } from "topojson-client";
+import topoData from "./brazil_topo.json";
+import { corDoScore } from "./scoring";
 
-// Silhueta simplificada do Brasil — viewBox 800×900.
-// Pontos aproximados pelo contorno (~22 vértices) — não pixel-perfect, mas
-// reconhecível e leve. Stroke fino, fill quase imperceptível.
-const BRAZIL_PATH = `
-M 280 7
-L 460 23
-L 480 125
-L 640 182
-L 710 205
-L 774 244
-L 784 308
-L 720 410
-L 686 558
-L 630 647
-L 520 702
-L 500 786
-L 412 893
-L 340 809
-L 340 626
-L 320 626
-L 280 490
-L 0 353
-L 20 262
-L 140 171
-L 180 103
-Z
-`.trim();
+// Pré-extrai a feature collection uma única vez
+const BR_FEATURES = feature(topoData, topoData.objects.states);
 
-export default function BrazilMap({ municipios, scores, selectedId, onSelect, modo }) {
-  // Ordena por score crescente para que dots maiores fiquem por cima
-  const ordered = useMemo(
-    () => [...municipios].sort((a, b) => (scores[a.id]?.final ?? 0) - (scores[b.id]?.final ?? 0)),
-    [municipios, scores]
-  );
+export default function BrazilMap({ municipios, scores, selectedId, compareId, onSelect, modo }) {
+  const containerRef = useRef(null);
+  const [size, setSize] = useState({ w: 800, h: 600 });
 
-  // Top 3 — destacar
-  const top3 = useMemo(() => {
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const ro = new ResizeObserver((entries) => {
+      const r = entries[0].contentRect;
+      if (r.width > 0 && r.height > 0) setSize({ w: r.width, h: r.height });
+    });
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  // Projeção encaixada nas dimensões do container
+  const { projection, pathFn } = useMemo(() => {
+    const proj = geoMercator().fitExtent(
+      [
+        [size.w * 0.06, size.h * 0.06],
+        [size.w * 0.94, size.h * 0.94],
+      ],
+      BR_FEATURES
+    );
+    return { projection: proj, pathFn: geoPath(proj) };
+  }, [size]);
+
+  // Pontos projetados a partir de lat/lng
+  const points = useMemo(() => {
+    return municipios.map((m) => {
+      const xy = projection([m.lng, m.lat]);
+      return { ...m, x: xy?.[0] ?? 0, y: xy?.[1] ?? 0 };
+    });
+  }, [municipios, projection]);
+
+  // Top 3 dos scores
+  const top3Set = useMemo(() => {
     const list = [...municipios]
       .map((m) => ({ id: m.id, score: scores[m.id]?.final ?? 0 }))
       .sort((a, b) => b.score - a.score)
@@ -48,38 +53,15 @@ export default function BrazilMap({ municipios, scores, selectedId, onSelect, mo
   }, [municipios, scores]);
 
   return (
-    <div className="relative w-full h-full bg-ink-deepest overflow-hidden topo-dots scan-lines">
-      {/* Decorative crosshair grid in corners */}
-      <div className="absolute top-3 left-3 pointer-events-none">
-        <svg width="14" height="14" viewBox="0 0 14 14" className="text-paper/30">
-          <line x1="0" y1="7" x2="14" y2="7" stroke="currentColor" strokeWidth="0.5" />
-          <line x1="7" y1="0" x2="7" y2="14" stroke="currentColor" strokeWidth="0.5" />
-        </svg>
-      </div>
-      <div className="absolute top-3 right-3 pointer-events-none">
-        <svg width="14" height="14" viewBox="0 0 14 14" className="text-paper/30">
-          <line x1="0" y1="7" x2="14" y2="7" stroke="currentColor" strokeWidth="0.5" />
-          <line x1="7" y1="0" x2="7" y2="14" stroke="currentColor" strokeWidth="0.5" />
-        </svg>
-      </div>
-      <div className="absolute bottom-3 left-3 pointer-events-none">
-        <svg width="14" height="14" viewBox="0 0 14 14" className="text-paper/30">
-          <line x1="0" y1="7" x2="14" y2="7" stroke="currentColor" strokeWidth="0.5" />
-          <line x1="7" y1="0" x2="7" y2="14" stroke="currentColor" strokeWidth="0.5" />
-        </svg>
-      </div>
-      <div className="absolute bottom-3 right-3 pointer-events-none">
-        <svg width="14" height="14" viewBox="0 0 14 14" className="text-paper/30">
-          <line x1="0" y1="7" x2="14" y2="7" stroke="currentColor" strokeWidth="0.5" />
-          <line x1="7" y1="0" x2="7" y2="14" stroke="currentColor" strokeWidth="0.5" />
-        </svg>
-      </div>
-
-      {/* Cabeçalho técnico do mapa */}
+    <div
+      ref={containerRef}
+      className="relative w-full h-full bg-ink-deepest overflow-hidden topo-dots scan-lines"
+    >
+      {/* Cabeçalho técnico */}
       <div className="absolute top-4 left-4 right-4 flex items-start justify-between pointer-events-none z-10">
         <div className="flex items-center gap-3">
           <div className="text-[10px] tabular tracking-[0.18em] uppercase text-paper/45 font-mono">
-            BR · Equirectangular · WGS84
+            BR · Mercator · WGS84
           </div>
           <div className="h-px w-16 bg-hairline-strong/60" />
           <div className="text-[10px] tabular tracking-[0.18em] uppercase text-amber/70 font-mono">
@@ -91,197 +73,212 @@ export default function BrazilMap({ municipios, scores, selectedId, onSelect, mo
         </div>
       </div>
 
-      {/* Indicador "ao vivo" */}
+      {/* Status ao vivo */}
       <div className="absolute bottom-5 left-4 flex items-center gap-2 pointer-events-none z-10">
         <span className="relative flex h-1.5 w-1.5">
-          <span className="absolute inline-flex h-full w-full animate-pulse-soft rounded-full bg-amber"></span>
-          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber"></span>
+          <span className="absolute inline-flex h-full w-full animate-pulse-soft rounded-full bg-amber" />
+          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber" />
         </span>
         <span className="text-[10px] tabular tracking-[0.18em] uppercase text-paper/55 font-mono">
           Score recalculado · {Object.keys(scores).length} municípios
         </span>
       </div>
 
-      {/* Coordenadas no canto */}
       <div className="absolute bottom-5 right-4 text-right pointer-events-none z-10">
         <div className="text-[10px] tabular tracking-[0.14em] text-paper/40 font-mono">
-          Lat -33.74°S → +5.27°N
-        </div>
-        <div className="text-[10px] tabular tracking-[0.14em] text-paper/40 font-mono">
-          Lng -73.99°W → -34.79°W
+          26 UFs + DF
         </div>
       </div>
 
       <svg
-        viewBox="0 0 800 900"
-        preserveAspectRatio="xMidYMid meet"
-        className="w-full h-full"
-        style={{ filter: "drop-shadow(0 0 80px rgba(252, 194, 10, 0.04))" }}
+        width={size.w}
+        height={size.h}
+        viewBox={`0 0 ${size.w} ${size.h}`}
+        className="absolute inset-0 w-full h-full"
       >
         <defs>
-          <radialGradient id="mapGlow" cx="50%" cy="50%" r="60%">
-            <stop offset="0%" stopColor="rgba(252,194,10,0.05)" />
+          <radialGradient id="brGlow" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stopColor="rgba(252,194,10,0.04)" />
             <stop offset="100%" stopColor="rgba(252,194,10,0)" />
           </radialGradient>
-          <pattern id="hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="6" stroke="rgba(244,241,234,0.04)" strokeWidth="1" />
+          <pattern
+            id="hatch"
+            patternUnits="userSpaceOnUse"
+            width="6"
+            height="6"
+            patternTransform="rotate(45)"
+          >
+            <line
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="6"
+              stroke="rgba(244,241,234,0.025)"
+              strokeWidth="1"
+            />
           </pattern>
-          <filter id="dotGlow">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
         </defs>
 
-        {/* Glow background sob a silhueta */}
-        <ellipse cx="400" cy="450" rx="380" ry="420" fill="url(#mapGlow)" />
+        <ellipse
+          cx={size.w / 2}
+          cy={size.h / 2}
+          rx={size.w * 0.42}
+          ry={size.h * 0.42}
+          fill="url(#brGlow)"
+        />
 
-        {/* Silhueta Brasil */}
-        <path
-          d={BRAZIL_PATH}
-          fill="url(#hatch)"
-          stroke="rgba(244, 241, 234, 0.35)"
-          strokeWidth="1.2"
-          strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
-        />
-        {/* Linha interna decorativa — divide N/NE/SE etc. (apenas estética) */}
-        <path
-          d="M 100 300 Q 350 380 600 280"
-          fill="none"
-          stroke="rgba(244, 241, 234, 0.06)"
-          strokeWidth="0.5"
-          strokeDasharray="2 4"
-        />
-        <path
-          d="M 200 600 Q 400 550 650 600"
-          fill="none"
-          stroke="rgba(244, 241, 234, 0.06)"
-          strokeWidth="0.5"
-          strokeDasharray="2 4"
-        />
+        {/* Estados com fill hatch */}
+        <g>
+          {BR_FEATURES.features.map((f, i) => (
+            <path
+              key={f.properties?.uf || i}
+              d={pathFn(f)}
+              fill="url(#hatch)"
+              stroke="rgba(244, 241, 234, 0.18)"
+              strokeWidth="0.6"
+              strokeLinejoin="round"
+            />
+          ))}
+        </g>
+
+        {/* Contorno mais visível */}
+        <g style={{ pointerEvents: "none" }}>
+          {BR_FEATURES.features.map((f, i) => (
+            <path
+              key={`outline-${i}`}
+              d={pathFn(f)}
+              fill="none"
+              stroke="rgba(244, 241, 234, 0.32)"
+              strokeWidth="0.8"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+          ))}
+        </g>
 
         {/* Pontos dos municípios */}
-        {ordered.map((m) => {
-          const { x, y } = projeta(m.lat, m.lng);
-          const score = scores[m.id]?.final ?? 0;
-          const isSel = selectedId === m.id;
-          const isTop = top3.has(m.id);
-          const radius = 4 + (score / 100) * 10;
-          const fill = corDoScore(score);
+        <g>
+          {points.map((p) => {
+            const score = scores[p.id]?.final ?? 0;
+            const isSel = selectedId === p.id;
+            const isCmp = compareId === p.id;
+            const isTop = top3Set.has(p.id);
+            const radius = 4 + (score / 100) * 8;
+            const fill = corDoScore(score);
+            const crosshairColor = isSel ? "var(--amber)" : isCmp ? "#fc6926" : null;
 
-          return (
-            <g
-              key={m.id}
-              className="cursor-pointer"
-              onClick={() => onSelect(m.id)}
-              role="button"
-              tabIndex={0}
-            >
-              {/* Halo */}
-              {isTop && (
-                <motion.circle
-                  cx={x}
-                  cy={y}
-                  r={radius * 2.3}
+            return (
+              <g
+                key={p.id}
+                className="cursor-pointer"
+                onClick={() => onSelect(p.id)}
+                role="button"
+              >
+                {isTop && (
+                  <motion.circle
+                    cx={p.x}
+                    cy={p.y}
+                    r={radius * 2.4}
+                    fill="none"
+                    stroke={fill}
+                    strokeWidth="0.8"
+                    strokeOpacity="0.4"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: [0.85, 1.4, 0.85], opacity: [0.4, 0.06, 0.4] }}
+                    transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                )}
+
+                {crosshairColor && (
+                  <>
+                    <line
+                      x1={p.x - 22}
+                      y1={p.y}
+                      x2={p.x - radius - 4}
+                      y2={p.y}
+                      stroke={crosshairColor}
+                      strokeWidth="1"
+                      strokeDasharray={isCmp ? "2 2" : "0"}
+                    />
+                    <line
+                      x1={p.x + radius + 4}
+                      y1={p.y}
+                      x2={p.x + 22}
+                      y2={p.y}
+                      stroke={crosshairColor}
+                      strokeWidth="1"
+                      strokeDasharray={isCmp ? "2 2" : "0"}
+                    />
+                    <line
+                      x1={p.x}
+                      y1={p.y - 22}
+                      x2={p.x}
+                      y2={p.y - radius - 4}
+                      stroke={crosshairColor}
+                      strokeWidth="1"
+                      strokeDasharray={isCmp ? "2 2" : "0"}
+                    />
+                    <line
+                      x1={p.x}
+                      y1={p.y + radius + 4}
+                      x2={p.x}
+                      y2={p.y + 22}
+                      stroke={crosshairColor}
+                      strokeWidth="1"
+                      strokeDasharray={isCmp ? "2 2" : "0"}
+                    />
+                  </>
+                )}
+
+                <circle
+                  cx={p.x}
+                  cy={p.y}
+                  r={radius + 2}
                   fill="none"
                   stroke={fill}
-                  strokeWidth="0.8"
-                  strokeOpacity="0.35"
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: [0.8, 1.4, 0.8], opacity: [0.35, 0.05, 0.35] }}
-                  transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+                  strokeWidth="0.7"
+                  strokeOpacity={isSel || isCmp ? 1 : 0.5}
                 />
-              )}
-              {/* Crosshair se selecionado */}
-              {isSel && (
-                <>
-                  <line
-                    x1={x - 22}
-                    y1={y}
-                    x2={x - 8}
-                    y2={y}
-                    stroke="var(--amber)"
-                    strokeWidth="1"
-                  />
-                  <line
-                    x1={x + 8}
-                    y1={y}
-                    x2={x + 22}
-                    y2={y}
-                    stroke="var(--amber)"
-                    strokeWidth="1"
-                  />
-                  <line
-                    x1={x}
-                    y1={y - 22}
-                    x2={x}
-                    y2={y - 8}
-                    stroke="var(--amber)"
-                    strokeWidth="1"
-                  />
-                  <line
-                    x1={x}
-                    y1={y + 8}
-                    x2={x}
-                    y2={y + 22}
-                    stroke="var(--amber)"
-                    strokeWidth="1"
-                  />
-                </>
-              )}
-              {/* Outer dot ring */}
-              <circle
-                cx={x}
-                cy={y}
-                r={radius + 2}
-                fill="none"
-                stroke={fill}
-                strokeWidth="0.8"
-                strokeOpacity={isSel ? 1 : 0.5}
-              />
-              {/* Solid dot */}
-              <motion.circle
-                cx={x}
-                cy={y}
-                r={radius}
-                fill={fill}
-                fillOpacity={isSel ? 1 : 0.85}
-                whileHover={{ scale: 1.3 }}
-                style={{ filter: isTop ? "drop-shadow(0 0 6px " + fill + ")" : "none" }}
-              />
-              {/* Score numérico (apenas top3) */}
-              {isTop && (
-                <text
-                  x={x + radius + 6}
-                  y={y + 4}
-                  fontSize="11"
-                  fontFamily="'JetBrains Mono', monospace"
-                  fontWeight="500"
-                  fill="var(--amber)"
-                >
-                  {score}
-                </text>
-              )}
-              {/* Nome (selecionado) */}
-              {isSel && (
-                <text
-                  x={x}
-                  y={y - radius - 12}
-                  fontSize="11"
-                  fontFamily="'Geist', sans-serif"
-                  textAnchor="middle"
-                  fill="var(--paper)"
-                  fontWeight="500"
-                >
-                  {m.apelido || m.municipio}/{m.uf}
-                </text>
-              )}
-            </g>
-          );
-        })}
+                <motion.circle
+                  cx={p.x}
+                  cy={p.y}
+                  r={radius}
+                  fill={fill}
+                  fillOpacity={isSel ? 1 : 0.85}
+                  whileHover={{ scale: 1.3 }}
+                  style={{
+                    filter: isTop ? `drop-shadow(0 0 5px ${fill})` : "none",
+                  }}
+                />
+                {isTop && (
+                  <text
+                    x={p.x + radius + 6}
+                    y={p.y + 4}
+                    fontSize="11"
+                    fontFamily="'JetBrains Mono', monospace"
+                    fontWeight="500"
+                    fill="var(--amber)"
+                  >
+                    {score}
+                  </text>
+                )}
+                {(isSel || isCmp) && (
+                  <text
+                    x={p.x}
+                    y={p.y - radius - 12}
+                    fontSize="11"
+                    fontFamily="'Geist', sans-serif"
+                    textAnchor="middle"
+                    fill={isSel ? "var(--paper)" : "#fc6926"}
+                    fontWeight="500"
+                  >
+                    {p.apelido || p.municipio}/{p.uf}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </g>
       </svg>
     </div>
   );

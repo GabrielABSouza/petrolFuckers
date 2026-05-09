@@ -2,6 +2,34 @@
 // Inspirado em dados reais (ANEEL SIGA, Atlas E+, EDA interno) mas TODOS
 // os números operacionais por município são estimativas/proxy para validar
 // o fluxo de decisão. Substituir por master_df.csv real na próxima versão.
+//
+// instrumentosPublicos[]: badges de elegibilidade preliminar (TRIAGEM, não
+// parecer jurídico). Categorias: fiscal | financiamento | leilao | obra | politica.
+
+export const INSTRUMENTOS_LABELS = {
+  REIDI: { categoria: "fiscal", nome: "REIDI", cor: "amber" },
+  SUDENE: { categoria: "fiscal", nome: "SUDENE", cor: "amber" },
+  SUDAM: { categoria: "fiscal", nome: "SUDAM", cor: "amber" },
+  Debentures: { categoria: "fiscal", nome: "Debêntures inc.", cor: "amber" },
+  FNE: { categoria: "financiamento", nome: "FNE", cor: "ember" },
+  FNO: { categoria: "financiamento", nome: "FNO", cor: "ember" },
+  FCO: { categoria: "financiamento", nome: "FCO", cor: "ember" },
+  BNDES: { categoria: "financiamento", nome: "BNDES", cor: "ember" },
+  Leilao: { categoria: "leilao", nome: "Leilão ANEEL", cor: "ember" },
+  PNCP: { categoria: "leilao", nome: "PNCP", cor: "ember" },
+  Transferegov: { categoria: "obra", nome: "Transferegov", cor: "moss" },
+  Obrasgov: { categoria: "obra", nome: "Obrasgov", cor: "moss" },
+  PAC: { categoria: "obra", nome: "Novo PAC", cor: "moss" },
+  REDATA: { categoria: "politica", nome: "Pol. Data Centers", cor: "amber" },
+};
+
+export const CATEGORIAS_INSTRUMENTOS = {
+  fiscal: { label: "Incentivo fiscal", glifo: "₣" },
+  financiamento: { label: "Financiamento", glifo: "$" },
+  leilao: { label: "Leilão / contratação", glifo: "⇄" },
+  obra: { label: "Obra / transferência", glifo: "▣" },
+  politica: { label: "Política setorial", glifo: "§" },
+};
 
 export const MUNICIPIOS = [
   {
@@ -23,6 +51,8 @@ export const MUNICIPIOS = [
     riscoSocioambientalScore: 22,
     desenvolvimentoRegionalScore: 71,
     prontidaoDataCenterScore: 82,
+    convergenciaPublicaScore: 86,
+    instrumentosPublicos: ["REIDI", "SUDENE", "FNE", "Debentures", "BNDES", "REDATA", "PAC"],
     observacoes:
       "Hub de hidrogênio verde + porto operacional + 41% das iniciativas H₂ do país. Pipeline solar/eólico 9,8 GW.",
     dadosMockados: true,
@@ -46,6 +76,8 @@ export const MUNICIPIOS = [
     riscoSocioambientalScore: 18,
     desenvolvimentoRegionalScore: 84,
     prontidaoDataCenterScore: 41,
+    convergenciaPublicaScore: 68,
+    instrumentosPublicos: ["SUDENE", "FNE", "REIDI", "Debentures"],
     observacoes:
       "Solar dominante. Indústria local mínima — fronteira de powershoring para neoindustrialização.",
     dadosMockados: true,
@@ -69,6 +101,8 @@ export const MUNICIPIOS = [
     riscoSocioambientalScore: 26,
     desenvolvimentoRegionalScore: 78,
     prontidaoDataCenterScore: 38,
+    convergenciaPublicaScore: 64,
+    instrumentosPublicos: ["SUDENE", "FNE", "REIDI", "BNDES"],
     observacoes:
       "Pipeline solar de 4,5 GW outorgado, sem indústria local. Top-3 em mismatch energia/indústria.",
     dadosMockados: true,
@@ -92,6 +126,8 @@ export const MUNICIPIOS = [
     riscoSocioambientalScore: 38,
     desenvolvimentoRegionalScore: 52,
     prontidaoDataCenterScore: 67,
+    convergenciaPublicaScore: 78,
+    instrumentosPublicos: ["REIDI", "SUDENE", "FNE", "BNDES", "Debentures", "PNCP"],
     observacoes:
       "Polo petroquímico em transição. Demanda industrial existente alta, gargalo é margem de rede.",
     dadosMockados: true,
@@ -115,6 +151,8 @@ export const MUNICIPIOS = [
     riscoSocioambientalScore: 16,
     desenvolvimentoRegionalScore: 88,
     prontidaoDataCenterScore: 36,
+    convergenciaPublicaScore: 72,
+    instrumentosPublicos: ["SUDENE", "FNE", "REIDI", "Debentures", "Transferegov"],
     observacoes:
       "Eólica forte. Município com baixíssima indústria — ideal para política pública de atração industrial.",
     dadosMockados: true,
@@ -138,6 +176,8 @@ export const MUNICIPIOS = [
     riscoSocioambientalScore: 14,
     desenvolvimentoRegionalScore: 86,
     prontidaoDataCenterScore: 28,
+    convergenciaPublicaScore: 70,
+    instrumentosPublicos: ["SUDENE", "FNE", "REIDI", "Transferegov"],
     observacoes:
       "Sertão eólico. Povo local com baixo IDH — score de desenvolvimento regional muito alto.",
     dadosMockados: true,
@@ -161,6 +201,8 @@ export const MUNICIPIOS = [
     riscoSocioambientalScore: 78,
     desenvolvimentoRegionalScore: 48,
     prontidaoDataCenterScore: 22,
+    convergenciaPublicaScore: 58,
+    instrumentosPublicos: ["SUDAM", "FNO", "REIDI", "BNDES"],
     observacoes:
       "Belo Monte. Capacidade hidroelétrica enorme, mas alto risco socioambiental e fibra distante.",
     dadosMockados: true,
@@ -184,6 +226,8 @@ export const MUNICIPIOS = [
     riscoSocioambientalScore: 64,
     desenvolvimentoRegionalScore: 56,
     prontidaoDataCenterScore: 31,
+    convergenciaPublicaScore: 56,
+    instrumentosPublicos: ["SUDAM", "FNO", "REIDI", "BNDES", "PAC"],
     observacoes:
       "Hidrelétrica histórica. Margem de rede sub-utilizada para indústria de baixo carbono.",
     dadosMockados: true,
@@ -207,6 +251,8 @@ export const MUNICIPIOS = [
     riscoSocioambientalScore: 52,
     desenvolvimentoRegionalScore: 64,
     prontidaoDataCenterScore: 44,
+    convergenciaPublicaScore: 62,
+    instrumentosPublicos: ["SUDAM", "FNO", "REIDI", "BNDES", "Obrasgov"],
     observacoes:
       "Santo Antônio + Jirau. Capital — fibra disponível, único do Norte com prontidão razoável a data center.",
     dadosMockados: true,
@@ -230,6 +276,8 @@ export const MUNICIPIOS = [
     riscoSocioambientalScore: 28,
     desenvolvimentoRegionalScore: 62,
     prontidaoDataCenterScore: 54,
+    convergenciaPublicaScore: 60,
+    instrumentosPublicos: ["FCO", "BNDES", "REIDI", "Debentures"],
     observacoes:
       "Polo agroindustrial do Centro-Oeste. Biomassa abundante, sem biometano operacional.",
     dadosMockados: true,
@@ -253,6 +301,8 @@ export const MUNICIPIOS = [
     riscoSocioambientalScore: 34,
     desenvolvimentoRegionalScore: 70,
     prontidaoDataCenterScore: 42,
+    convergenciaPublicaScore: 58,
+    instrumentosPublicos: ["FCO", "BNDES", "REIDI", "Debentures", "Transferegov"],
     observacoes:
       "MT produz 44 Mt soja/ano e tem zero biometano. Vazio do Centro-Oeste — caso de fertilizante verde.",
     dadosMockados: true,
@@ -276,6 +326,8 @@ export const MUNICIPIOS = [
     riscoSocioambientalScore: 58,
     desenvolvimentoRegionalScore: 60,
     prontidaoDataCenterScore: 51,
+    convergenciaPublicaScore: 74,
+    instrumentosPublicos: ["SUDAM", "FNO", "REIDI", "BNDES", "Obrasgov", "PAC"],
     observacoes:
       "Polo de alumínio (Albras/Hydro). Porto. Demanda industrial alta, mas risco socioambiental amazônico.",
     dadosMockados: true,
@@ -336,10 +388,10 @@ export const PERSONAS = {
 };
 
 export const CRITERIOS = [
-  { id: "recurso", label: "Recurso renovável", abrev: "REC" },
-  { id: "rede", label: "Conexão à rede", abrev: "REDE" },
-  { id: "demanda", label: "Demanda/oferta estratégica", abrev: "DEM" },
-  { id: "risco", label: "Baixo risco socioambiental", abrev: "RISCO" },
-  { id: "desenvolvimento", label: "Desenvolvimento regional", abrev: "DESV" },
-  { id: "datacenter", label: "Prontidão para data center", abrev: "DC" },
+  { id: "recurso", label: "Energia renovável", abrev: "energia" },
+  { id: "rede", label: "Acesso à rede", abrev: "rede" },
+  { id: "demanda", label: "Demanda local", abrev: "demanda" },
+  { id: "risco", label: "Segurança socioambiental", abrev: "social" },
+  { id: "desenvolvimento", label: "Impacto regional", abrev: "regional" },
+  { id: "datacenter", label: "Infraestrutura digital", abrev: "digital" },
 ];
