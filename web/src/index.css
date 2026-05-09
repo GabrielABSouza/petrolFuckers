@@ -3,15 +3,22 @@
 @tailwind utilities;
 
 :root {
+  /* Dark navy institucional — alinhado com paleta PID */
   --ink: #05274b;
   --ink-deeper: #031a33;
   --ink-deepest: #020f1f;
+  /* Foreground warm */
   --paper: #f4f1ea;
   --bone: #e8e3d6;
+  /* Cyan PID (#becccc) — acento frio reservado */
+  --mist: #becccc;
+  /* Escala quente PID */
   --amber: #fcc20a;
+  --amber-dim: #d4a309;
+  --mango: #fc9e24;
   --ember: #fc6926;
   --cinder: #fa441a;
-  --graphite: #18212f;
+  --graphite: #181818;
   --hairline: rgba(244, 241, 234, 0.08);
   --hairline-strong: rgba(244, 241, 234, 0.18);
 }
@@ -32,7 +39,6 @@ body,
   font-feature-settings: "ss01", "ss02", "cv11";
 }
 
-/* Grain texture overlay — gives institutional 'paper' depth */
 body::before {
   content: "";
   position: fixed;
@@ -43,7 +49,6 @@ body::before {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Hairlines — institutional dividers, 0.5px feel */
 .hairline {
   border-color: var(--hairline);
 }
@@ -51,7 +56,6 @@ body::before {
   border-color: var(--hairline-strong);
 }
 
-/* Slider — track grossa com fill amber até o thumb */
 input[type="range"].radar-slider {
   -webkit-appearance: none;
   appearance: none;
@@ -60,7 +64,6 @@ input[type="range"].radar-slider {
   outline: none;
   cursor: pointer;
   border: none;
-  /* background setado inline (gradient amber → bg até o valor) */
 }
 input[type="range"].radar-slider::-webkit-slider-runnable-track {
   height: 6px;
@@ -100,7 +103,6 @@ input[type="range"].radar-slider::-moz-range-thumb {
   border-radius: 50%;
 }
 
-/* Scrollbar — sober, institutional */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -115,25 +117,21 @@ input[type="range"].radar-slider::-moz-range-thumb {
   background: var(--amber);
 }
 
-/* Selection */
 ::selection {
   background: var(--amber);
   color: var(--ink-deepest);
 }
 
-/* Tabular numbers everywhere they belong */
 .tabular {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
-/* Display heading micro-tracking */
 .font-display {
   font-feature-settings: "ss01", "salt", "lnum";
   font-optical-sizing: auto;
 }
 
-/* Pulse glow for top-ranked dot */
 @keyframes glow {
   0%,
   100% {
@@ -147,7 +145,6 @@ input[type="range"].radar-slider::-moz-range-thumb {
   animation: glow 2.4s ease-in-out infinite;
 }
 
-/* Diagonal hatch for "mocked" badge */
 .hatch {
   background-image: repeating-linear-gradient(
     45deg,
@@ -158,7 +155,6 @@ input[type="range"].radar-slider::-moz-range-thumb {
   );
 }
 
-/* Map background — subtle vertical scan-line */
 .scan-lines {
   background-image: repeating-linear-gradient(
     to bottom,
@@ -169,7 +165,6 @@ input[type="range"].radar-slider::-moz-range-thumb {
   );
 }
 
-/* Topographic dot grid for the map background */
 .topo-dots {
   background-image: radial-gradient(
     circle at center,
@@ -179,7 +174,6 @@ input[type="range"].radar-slider::-moz-range-thumb {
   background-size: 14px 14px;
 }
 
-/* Ticker animation utility */
 .ticker {
   animation: tick 40s linear infinite;
 }
@@ -192,7 +186,6 @@ input[type="range"].radar-slider::-moz-range-thumb {
   }
 }
 
-/* Focus ring */
 button:focus-visible,
 [role="button"]:focus-visible {
   outline: 1px solid var(--amber);

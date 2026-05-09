@@ -4,20 +4,29 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Dark navy institucional — chrome principal
         ink: {
           DEFAULT: "#05274b",
           deeper: "#031a33",
           deepest: "#020f1f",
         },
+        // Foreground sobre dark
         paper: "#f4f1ea",
         bone: "#e8e3d6",
+        // Cyan claro PID — reservado para acentos frios em badges/highlights
+        mist: {
+          DEFAULT: "#becccc",
+          400: "#a8b9b9",
+        },
+        // Escala quente PID (amarelo → vermelho) — paleta institucional do Instituto E+
         amber: {
           DEFAULT: "#fcc20a",
           dim: "#d4a309",
         },
+        mango: "#fc9e24", // NOVO — laranja-amarelo da paleta PID
         ember: "#fc6926",
         cinder: "#fa441a",
-        graphite: "#18212f",
+        graphite: "#181818", // text preto profundo da PID
         moss: "#5b7a6a",
         slate: {
           dim: "#94a3b8",
@@ -35,7 +44,7 @@ export default {
       animation: {
         "fade-up": "fadeUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both",
         "pulse-soft": "pulseSoft 2.4s ease-in-out infinite",
-        "scan": "scan 8s linear infinite",
+        scan: "scan 8s linear infinite",
       },
       keyframes: {
         fadeUp: {
