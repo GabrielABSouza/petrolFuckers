@@ -38,7 +38,8 @@
 - [x] Banco de dados PID mapeado (22 fontes)
 - [x] EDA inicial concluída — ver `06_eda_insights.md`
 - [x] Dados-chave baixados: ANEEL SIGA (25.407 empreendimentos), ANEEL SIGET (1.160 trechos), ANP Biometano (19 plantas)
-- [ ] Acesso direto à PID v2.0 — agente teve HTTP 403; equipe deve testar via navegador
+- [x] Estrutura real da PID v2.0 documentada via LEIAME oficial (`references/PID-LEIAME-v.2.pdf`)
+- [ ] Inspecionar PID ao vivo via navegador (DevTools → ver se há layer service REST exposto)
 - [ ] Definir trilha (UX / Análise / Aplicação)
 - [ ] Definir persona-alvo
 - [ ] Convergir em escopo MVP (ver `04` informado por `06`)

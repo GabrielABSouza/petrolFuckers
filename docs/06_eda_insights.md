@@ -83,12 +83,16 @@ O mismatch é taman que qualquer ferramenta de "recomendação locacional" tem m
 
 ### 2.1 Inventário: o que a PID declara vs. o que existe
 
-Com base no Atlas (p.14-47) e no `BANCO_DADOS_PID.docx`, a PID v2.0 declara integrar 4 famílias de camadas:
+> **Atualização (LEIAME oficial):** após acesso ao Guia do Usuário (`references/PID-LEIAME-v.2.pdf`), a estrutura real da PID v2.0 é diferente do que era inferido só pelo Atlas. A PID é um **visualizador GIS no ArcGIS Experience** com **4 abas**, não 4 famílias de camadas conceituais. Output é **imagem** (JPG/PNG/PDF), não dados estruturados. Não tem API.
 
-1. Infraestrutura de transporte e energia (gasodutos, ferrovias, portos, LTs)
-2. Disponibilidade de biomassa
-3. Localização de indústrias existentes e em projeto
-4. Potenciais de energias renováveis
+As 4 abas reais da PID v2.0:
+
+1. **Infraestrutura** — Hidrelétricas, Sistemas Isolados, Linhas de Transmissão, Gasodutos, Eólicas, Solares (fontes: SIGEL-ANEEL, IDE-Sisema, EPE)
+2. **Indústrias** — Consumo MWh por tipo de indústria, número de indústrias **agregadas por região**, classificação setorial (fontes: IBGE, MapBiomas)
+3. **Hidrogênio** — HUBs, projetos avançados, projetos planejados (fontes: IEA, EPE)
+4. **PID** (combinador) — sobreposição livre + medição + salvar imagem
+
+**Biomassa/biometano não tem aba dedicada** — só aparece quando embutido em Indústrias/Infra. Isso reforça o achado da Seção 1.3 (vazio do Centro-Oeste).
 
 ### 2.2 Bases existentes que a PID provavelmente NÃO usa
 
@@ -278,7 +282,7 @@ Construir para o investidor. Se o produto resolver a pergunta "onde instalo minh
 
 ## Limitações
 
-1. **PID não acessada diretamente.** Todo o diagnóstico de "pontos cegos" é inferido da documentação (Atlas + BANCO_DADOS_PID.docx), não de inspeção visual da plataforma. A PID pode ter features não documentadas nos materiais que li.
+1. **PID inspecionada via LEIAME oficial, não via UI ao vivo.** O diagnóstico de "pontos cegos" usa o Guia do Usuário oficial (`references/PID-LEIAME-v.2.pdf`) e o Atlas. Inspeção visual da UI ao vivo (https://experience.arcgis.com/experience/4fde76ed5b3341cab0553adb3708ec69/) ainda é tarefa da equipe — pode revelar features não documentadas no LEIAME.
 
 2. **Granularidade industrial é fraca.** Os dados do Instituto Aço Brasil dão município, mas não coords exatas. Para os outros 8 setores (química, cimento, vidro, etc.), não consegui obter dados municipais em tempo hábil — teria que usar CEMPRE/RAIS do IBGE.
 
