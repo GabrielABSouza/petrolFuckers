@@ -1,0 +1,32 @@
+.DS_Store
+.qodo/
+.idea/
+.vscode/
+
+# Inputs locais grandes (não versionar — ficam em /Volumes/ExtremePro/hackaton_E+/)
+*.pdf
+*.docx
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Node
+node_modules/
+.next/
+dist/
+build/
+
+# Dados intermediários
+data/raw/
+data/processed/
+*.parquet
+*.feather
+
+# Env
+.env
+.env.local
