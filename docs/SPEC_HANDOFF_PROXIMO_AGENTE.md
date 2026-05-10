@@ -179,7 +179,7 @@ Preencher os 4 subdiretórios:
 
 Texto: "Coloque o código fonte zipado ou link do Git Hub". Soluções:
 
-- **Recomendado:** colocar um arquivo de texto com o link do GitHub (`https://github.com/GabrielABSouza/petrolFuckers`) como o repo é público.
+- **Recomendado:** colocar um arquivo de texto com o link do GitHub (`https://github.com/GabrielABSouza/equipe-464`) como o repo é público.
 - **Alternativa:** ZIP do repositório (excluindo `node_modules`, `dist`, `.git`).
 
 #### 2.3.5 `equipe-XXX/link-do-video-pitch--OBRIGATÓRIO.docx`
@@ -207,7 +207,7 @@ Roteiro sugerido de 3 minutos baseado nos critérios de avaliação (§8.2.4):
 
 Já existe (criado pelo Word). Apenas preencher com:
 
-- Nome da equipe: **petrolFuckers**
+- Nome da equipe: **equipe-464**
 - Integrantes: nomes + CPF + e-mail + função (programador/designer/dados/etc)
 - Universidade ou empresa de cada um
 - Confirmação de aceite do regulamento
@@ -262,7 +262,7 @@ Esse vocabulário já está em todo o produto e nos docs internos. Manter consis
 **Cuidado:** "Não serão aceitas soluções tecnológicas copiadas ou reproduzidas, de forma total ou parcial, de outras fontes e/ou competições, ou se tiverem sido desenvolvidas antes do primeiro dia do hackathon."
 
 **Como mitigar:**
-- Documentar **claramente** que o repo `petrolFuckers` foi criado em 9 mai 2026 (commits têm data).
+- Documentar **claramente** que o repo `equipe-464` foi criado em 9 mai 2026 (commits têm data).
 - A documentação estratégica (`docs/`) também foi feita durante o hackathon — preparação organizacional, não solução tecnológica pré-pronta.
 - Se a equipe usar bibliotecas open-source (React, d3-geo, topojson-client, etc), está coberto — são dependências comuns, não cópia de solução.
 
@@ -293,7 +293,7 @@ Antes de zipar e submeter, verificar:
 - [ ] `equipe-XXX/Código fonte-OBRIGATÓRIO/` com link GitHub OU zip do repo
 - [ ] `equipe-XXX/link-do-video-pitch--OBRIGATÓRIO.docx` com link YouTube **não listado** (não privado)
 - [ ] `equipe-XXX/informacoes-da-equipe--OBRIGATÓRIO.doc` preenchido com integrantes
-- [ ] Pasta `equipe-XXX/` renomeada para o nome real da equipe (ex: `equipe-petrolFuckers/`)
+- [ ] Pasta `equipe-XXX/` renomeada para o nome real da equipe (ex: `equipe-equipe-464/`)
 - [ ] Pasta zipada e enviada conforme regulamento §8.2.1.a — **até 10 mai 2026 21:59h BRT**
 - [ ] Vídeo de pitch ≤3min no YouTube como não listado, link informado no `.docx`
 - [ ] Pelo menos 1 representante da equipe presente na live de encerramento (14 mai) — §8.3.2
@@ -315,7 +315,7 @@ Em ordem de prioridade caso sobre tempo após o item 2 e 3:
 
 ## 6. Recursos úteis
 
-- **Repositório:** https://github.com/GabrielABSouza/petrolFuckers
+- **Repositório:** https://github.com/GabrielABSouza/equipe-464
 - **Regulamento oficial:** `references/regulamento-hackathon-e-mais.pdf` (também em `equipe-XXX/Documentação-OBRIGATÓRIO/`)
 - **Atlas E+ 2025:** `references/emais_atlas-miolo_digital_251203-12h58_f.pdf` — referência de paleta e estilo institucional E+
 - **PID atual (referência visual + paleta):** https://experience.arcgis.com/experience/4fde76ed5b3341cab0553adb3708ec69/page/Início

@@ -1,5 +1,5 @@
 Você é analista de dados num hackathon de 48h sobre transição energética
-industrial brasileira. A equipe é "petrolFuckers" e o evento é o
+industrial brasileira. A equipe é a "Equipe 464" e o evento é o
 Hackathon E+ Transição Energética 2026.
 
 CONTEXTO MÍNIMO
@@ -15,7 +15,7 @@ CONTEXTO MÍNIMO
 - Clusters mapeados: Norte, Nordeste (Pecém-CE, Camaçari-BA),
   Centro-Oeste, Sul, Sudeste (MG/SP/ES/RJ).
 - Documentação completa do projeto:
-  https://github.com/GabrielABSouza/petrolFuckers/tree/main/docs
+  https://github.com/GabrielABSouza/equipe-464/tree/main/docs
   (leia 02_atlas_sintese.md e 03_fontes_dados.md antes de começar.)
 
 OBJETIVO
@@ -82,7 +82,7 @@ PERGUNTAS QUE O RELATÓRIO DEVE RESPONDER (em ordem de prioridade)
 
 ENTREGÁVEL
 Crie um arquivo `docs/06_eda_insights.md` no repo
-github.com/GabrielABSouza/petrolFuckers com: - Resumo executivo (5 bullets, 1 página). - 1 seção por pergunta acima, com:
+github.com/GabrielABSouza/equipe-464 com: - Resumo executivo (5 bullets, 1 página). - 1 seção por pergunta acima, com:
 _ dado que sustenta o achado (tabela ou número, com fonte)
 _ 1 visualização sugerida (descrição textual ou link de imagem
 — não precisa renderizar)

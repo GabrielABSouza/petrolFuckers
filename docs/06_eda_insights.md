@@ -1,6 +1,6 @@
 # EDA Insights — Padrões Observados para Escopo do MVP
 
-> **Autor:** analista de dados, petrolFuckers
+> **Autor:** analista de dados, equipe-464
 > **Data:** 09 mai 2026
 > **Metodologia:** EDA dirigida por hipóteses. Sem regressão, sem modelo. Cruzamento de 5 fontes primárias (ANEEL SIGA, ANP biometano, Atlas E+ 2025, Instituto Aço Brasil, IBGE PAM).
 > **Restrição respeitada:** nenhum número inventado. Fontes não acessadas marcadas explicitamente.

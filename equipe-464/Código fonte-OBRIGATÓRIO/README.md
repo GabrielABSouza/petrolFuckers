@@ -3,14 +3,14 @@
 Camada de inteligência sobre a Plataforma Interativa de Descarbonização (PID) do Instituto E+, desenvolvida para o Hackathon E+ Transição Energética (9–10 mai 2026).
 
 Solução fullstack: front React + back FastAPI + agente Gemini 3 Flash.
-Repositório público: https://github.com/GabrielABSouza/petrolFuckers
+Repositório público: https://github.com/GabrielABSouza/equipe-464
 
 ---
 
 ## Estrutura (monorepo)
 
 ```
-petrolFuckers/
+equipe-464/
 ├── web/                       ← Front-end React/Vite (SPA)
 │   ├── public/                # logos PID (SVG), favicon
 │   ├── src/

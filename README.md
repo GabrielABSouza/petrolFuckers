@@ -1,4 +1,4 @@
-# petrolFuckers — Hackathon E+ Transição Energética 2026
+# equipe-464 — Hackathon E+ Transição Energética 2026
 
 Equipe participante do **Hackathon E+ Transição Energética** (9–10 maio 2026, São Paulo).
 

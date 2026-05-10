@@ -38,7 +38,7 @@
 - [ ] **Quem assume papel de tech lead? Quem é narrador (pitch)?**
 - [ ] **Disponibilidade real em horas durante 48h.**
 - [ ] **Ferramenta de comunicação?** (Discord do evento + WhatsApp do time? Slack?)
-- [ ] **Repositório:** GitHub público ou privado? (atualmente público em `GabrielABSouza/petrolFuckers`)
+- [ ] **Repositório:** GitHub público ou privado? (atualmente público em `GabrielABSouza/equipe-464`)
 - [ ] **Quem vai presencial vs. online?**
 
 ## Para investigar autonomamente

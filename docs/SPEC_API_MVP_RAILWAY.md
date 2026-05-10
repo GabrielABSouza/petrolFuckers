@@ -29,7 +29,7 @@ Você **NÃO PODE**:
 
 | Decisão | Valor |
 |---|---|
-| Estrutura | Monorepo: `api/` na raiz de `petrolFuckers`, ao lado de `web/` |
+| Estrutura | Monorepo: `api/` na raiz de `equipe-464`, ao lado de `web/` |
 | Branch | `main` (não cria branch separada) |
 | Stack | FastAPI 0.110+ + uvicorn + pandas + pyarrow + pydantic v2 |
 | Python | 3.11 |
@@ -62,7 +62,7 @@ Detalhes em §5 (código).
 ## 4. Estrutura de arquivos a criar
 
 ```
-petrolFuckers/
+equipe-464/
 ├── api/                                   ← NOVO
 │   ├── README.md
 │   ├── pyproject.toml
@@ -467,7 +467,7 @@ git push origin main
 
 1. Acessar https://railway.app/new
 2. Login (GitHub)
-3. **New Project** → **Deploy from GitHub repo** → escolher `petrolFuckers`
+3. **New Project** → **Deploy from GitHub repo** → escolher `equipe-464`
 4. **Configure Service:**
    - **Root Directory:** `/api`
    - **Watch Paths:** `api/**` (opcional — só rebuilda quando mexer em `api/`)

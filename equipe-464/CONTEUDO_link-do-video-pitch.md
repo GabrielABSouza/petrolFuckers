@@ -4,7 +4,7 @@
 
 ---
 
-**Equipe 464 — petrolFuckers**
+**Equipe 464**
 **Solução:** Radar PID — camada de inteligência sobre a Plataforma Interativa de Descarbonização
 
 **Link do vídeo pitch (YouTube, não listado):**

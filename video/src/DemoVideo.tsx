@@ -32,7 +32,9 @@ type Scene = {
   triggerTarget: { x: number; y: number };
 };
 
-// Timings: 1=40, 2=40, 3=50, 4=60, 5=30, 6=50, 7=330 → total 600
+// Timings: 1=40, 2=40, 3=50, 4=90, 5=30, 6=80, 7=270 → total 600
+// (+30f em Araporã e Janaúba pra leitura dos scores;
+//  typewriter da cena 7 acelerado pra compensar)
 const SCENES: Scene[] = [
   {
     src: "01-vazio.png",
@@ -63,7 +65,7 @@ const SCENES: Scene[] = [
   {
     src: "04-arapora.png",
     start: 130,
-    duration: 60,
+    duration: 90,
     step: 3,
     caption: "Araporã/MG · score 48",
     subtitle: "Breakdown por bloco econômico, social e ambiental",
@@ -71,7 +73,7 @@ const SCENES: Scene[] = [
   },
   {
     src: "05-compare.png",
-    start: 190,
+    start: 220,
     duration: 30,
     step: 4,
     caption: "Acione a comparação",
@@ -80,8 +82,8 @@ const SCENES: Scene[] = [
   },
   {
     src: "06-janauba.png",
-    start: 220,
-    duration: 50,
+    start: 250,
+    duration: 80,
     step: 5,
     caption: "Compare com outro município",
     subtitle: "Janaúba/MG · score 47",
@@ -89,8 +91,8 @@ const SCENES: Scene[] = [
   },
   {
     src: "07-agente.png", // só usado como ponto de partida do crossfade
-    start: 270,
-    duration: 330,
+    start: 330,
+    duration: 270,
     step: 6,
     caption: "Pergunte ao Copiloto",
     subtitle: "Resposta gerada em tempo real",
@@ -127,7 +129,7 @@ export const DemoVideo: React.FC = () => {
       ))}
 
       {/* Cena 7: typewriter da resposta da IA */}
-      <Sequence from={AGENT_SCENE_START} durationInFrames={330}>
+      <Sequence from={AGENT_SCENE_START} durationInFrames={270}>
         <SceneAgent />
       </Sequence>
 
@@ -290,10 +292,10 @@ const SceneAgent: React.FC = () => {
     extrapolateRight: "clamp",
   });
 
-  // Typewriter: começa no frame 25, completa em ~270 frames (9s)
-  // Velocidade varia: começa devagar (~3 chars/frame), acelera no meio
-  const TYPE_START = 25;
-  const TYPE_END = 280;
+  // Typewriter: começa no frame 15, completa em ~185 frames (~6,2s)
+  // Mais rápido que antes — deixa ~85 frames (~2,8s) de pausa pra leitura
+  const TYPE_START = 15;
+  const TYPE_END = 200;
   const totalChars = AGENT_RESPONSE.length;
   const charCount = Math.floor(
     interpolate(frame, [TYPE_START, TYPE_END], [0, totalChars], {

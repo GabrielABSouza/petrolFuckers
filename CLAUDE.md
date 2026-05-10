@@ -5,7 +5,7 @@ Hackathon E+ Transição Energética (Instituto E+ + Hackathon Brasil), 9–10 m
 Tema: "Transforme dados em decisões para acelerar a transição energética do Brasil."
 Desafio: evoluir a Plataforma Interativa de Descarbonização (PID).
 
-Equipe: **464 — petrolFuckers**. Formato: híbrido (presencial SP + online).
+Equipe: **464**. Formato: híbrido (presencial SP + online).
 Entrega final: **dom 10 mai 2026, 21:59 BRT**. Avaliação 11–13 mai. Resultado 14 mai.
 
 ## Objetivo da solução

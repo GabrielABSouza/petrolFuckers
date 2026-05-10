@@ -45,7 +45,7 @@ A arquitetura escolhida (SPA + API + agente) é deliberada para a v2: o front co
 
 ### Infraestrutura
 - **Docker** (multi-stage build) + **Railway** (deploy automático via Git push, healthcheck em `/health`).
-- **GitHub** — repositório público (https://github.com/GabrielABSouza/petrolFuckers).
+- **GitHub** — repositório público (https://github.com/GabrielABSouza/equipe-464).
 - **Plataforma de hospedagem do front** — qualquer CDN estática (Vercel, Netlify, Cloudflare Pages).
 
 ### Variáveis de ambiente em produção (Railway)
@@ -85,8 +85,8 @@ O Radar PID é indicado para dois momentos de decisão:
 
 Para rodar localmente:
 ```
-git clone https://github.com/GabrielABSouza/petrolFuckers.git
-cd petrolFuckers
+git clone https://github.com/GabrielABSouza/equipe-464.git
+cd equipe-464
 
 # Backend (terminal 1)
 cd api
