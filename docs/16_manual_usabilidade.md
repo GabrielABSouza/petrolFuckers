@@ -73,14 +73,15 @@ Botão **Metodologia** no header → modal compacto com fórmula MCDA, tabela de
 
 ---
 
-## 6. Limitações (mencione no pitch — honestidade vale ponto)
+## 6. Escopo do MVP (o que fica pra v2)
 
-- **Instrumentos públicos ainda mockados** — esquema servido pelo back, preenchimento real REIDI/SUDENE/FNE/BNDES é roadmap pós-hackathon.
-- **Variáveis estaduais aplicadas como municipais** (transmissão, biometano agregado por UF) — registrado no roadmap.
-- **Score social é proxy** — v2 substitui por IBGE Cidades real (IDH-M, PIB pc, desemprego).
-- **Agente sem busca web em tempo real** — constraint do Gemini 3 Flash impede combinar com File Search.
+- **Variáveis estaduais (transmissão, biometano agregado por UF) normalizadas intra-UF** ou movidas pra contexto, em vez de aplicadas como municipais.
+- **Filtro de aptidão geográfica por fonte** (overlay com Atlas Eólico CEPEL + Global Solar Atlas + IBGE PAM).
+- **Validação cruzada do score** contra realização (REIDI 2020-2025, FNE-Verde, SUDENE).
+- **Robust scaling no min-max** (winsorize 5/95) pra mitigar achatamento por outliers.
+- **Persistência de memória do agente** cross-session.
 
-Cada uma dessas limitações tem mitigação registrada em `docs/13_roadmap_indicador_v2.md`.
+Detalhamento em `docs/13_roadmap_indicador_v2.md`.
 
 ---
 
