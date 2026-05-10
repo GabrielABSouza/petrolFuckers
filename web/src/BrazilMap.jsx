@@ -238,6 +238,9 @@ export default function BrazilMap({
             return (
               <g
                 key={p.id}
+                data-municipio-id={p.id}
+                data-municipio-cx={p.x}
+                data-municipio-cy={p.y}
                 className="cursor-pointer"
                 onClick={() => onSelect(p.id)}
                 role="button"
