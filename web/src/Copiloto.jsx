@@ -236,6 +236,24 @@ function RichMessage({ text }) {
       return;
     }
 
+    const heading = trimmed.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      flushBullets();
+      const level = heading[1].length;
+      const cls =
+        level === 1
+          ? "text-[14px] font-medium text-amber mt-3 mb-1 tracking-tight"
+          : level === 2
+          ? "text-[13px] font-medium text-amber mt-2.5 mb-1"
+          : "text-[12.5px] font-medium text-paper mt-2 mb-0.5";
+      blocks.push(
+        <div key={`h-${blocks.length}`} className={cls}>
+          {renderInlineMarkdown(heading[2])}
+        </div>
+      );
+      return;
+    }
+
     const bullet = trimmed.match(/^[-*]\s+(.+)$/);
     if (bullet) {
       bullets.push(bullet[1]);

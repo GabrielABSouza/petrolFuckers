@@ -3,7 +3,9 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "uvicorn src.main:app --host 0.0.0.0 --port $PORT"
+# startCommand omitido de propósito: Railway executa em exec form (sem shell),
+# então $PORT vira literal. O CMD do Dockerfile usa shell form com ${PORT:-8000},
+# que expande corretamente.
 healthcheckPath = "/health"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
