@@ -140,17 +140,40 @@ export default function Copiloto({ ctx }) {
                         : "border-amber"
                     }`}
                   >
-                    {msg.text}
+                    <RichMessage text={msg.text} />
                   </div>
                 )}
               </motion.div>
             ))}
             {isLoading && (
-              <div className="flex justify-start">
-                <div className="text-[12.5px] text-paper/55 italic">
-                  Consultando agente…
+              <motion.div
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2 }}
+                className="flex justify-start"
+              >
+                <div className="border-l-2 border-amber/60 pl-3 text-[12.5px] text-paper/60 italic flex items-center">
+                  <span>Consultando agente</span>
+                  <span className="ml-1 inline-flex items-end gap-0.5" aria-hidden="true">
+                    {[0, 1, 2].map((i) => (
+                      <motion.span
+                        key={i}
+                        animate={{ y: [0, -3, 0], opacity: [0.35, 1, 0.35] }}
+                        transition={{
+                          duration: 0.75,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                          delay: i * 0.12,
+                        }}
+                        className="inline-block"
+                      >
+                        .
+                      </motion.span>
+                    ))}
+                  </span>
                 </div>
-              </div>
+              </motion.div>
             )}
           </div>
         )}
@@ -181,4 +204,81 @@ export default function Copiloto({ ctx }) {
       </form>
     </div>
   );
+}
+
+function RichMessage({ text }) {
+  const lines = String(text ?? "").split(/\r?\n/);
+  const blocks = [];
+  let bullets = [];
+
+  const flushBullets = () => {
+    if (!bullets.length) return;
+    const items = bullets;
+    bullets = [];
+    blocks.push(
+      <ul key={`ul-${blocks.length}`} className="list-disc pl-4 space-y-1 marker:text-amber">
+        {items.map((item, idx) => (
+          <li key={idx}>{renderInlineMarkdown(item)}</li>
+        ))}
+      </ul>
+    );
+  };
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flushBullets();
+      blocks.push(<div key={`gap-${blocks.length}`} className="h-2" />);
+      return;
+    }
+
+    const bullet = trimmed.match(/^[-*]\s+(.+)$/);
+    if (bullet) {
+      bullets.push(bullet[1]);
+      return;
+    }
+
+    flushBullets();
+    blocks.push(
+      <p key={`p-${blocks.length}`}>
+        {renderInlineMarkdown(trimmed)}
+      </p>
+    );
+  });
+
+  flushBullets();
+  return <div className="space-y-2 whitespace-normal">{blocks}</div>;
+}
+
+function renderInlineMarkdown(text) {
+  const out = [];
+  const pattern = /\*\*([^*]+)\*\*|\*([^*\n]+)\*/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      out.push(text.slice(lastIndex, match.index));
+    }
+    if (match[1]) {
+      out.push(
+        <strong key={`strong-${match.index}`} className="font-semibold text-paper">
+          {match[1]}
+        </strong>
+      );
+    } else {
+      out.push(
+        <em key={`em-${match.index}`} className="text-paper/75">
+          {match[2]}
+        </em>
+      );
+    }
+    lastIndex = pattern.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    out.push(text.slice(lastIndex));
+  }
+
+  return out.length ? out : text;
 }

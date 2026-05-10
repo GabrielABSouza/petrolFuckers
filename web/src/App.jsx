@@ -81,21 +81,30 @@ export default function App() {
           {/* Notícias rotativas */}
           <NoticiasCarousel />
 
-          {/* Cluster direito: theme + metodologia */}
-          <div className="h-full flex items-center justify-center gap-4 border-l border-hairline-strong">
+          {/* Cluster direito: metodologia em evidência + theme no extremo direito */}
+          <div className="h-full grid grid-cols-[minmax(0,1fr)_56px] border-l border-hairline-strong">
+            <button
+              onClick={() => setMethodOpen(true)}
+              className="group h-full min-w-0 flex items-center justify-center gap-3 px-5 text-left hover:bg-paper/[0.035] transition-colors"
+            >
+              <span className="w-8 h-8 flex items-center justify-center border border-hairline-strong text-amber group-hover:border-amber/55 group-hover:text-accent transition-colors">
+                <Info size={14} />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[9px] tabular tracking-[0.22em] uppercase text-amber font-mono leading-none">
+                  Metodologia
+                </span>
+                <span className="block mt-1 font-display text-[17px] text-paper/90 group-hover:text-accent leading-none truncate">
+                  Indicador MCDA
+                </span>
+              </span>
+            </button>
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               aria-label={theme === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro"}
-              className="w-8 h-8 flex items-center justify-center text-paper/55 hover:text-accent transition-colors border border-hairline-strong"
+              className="h-full w-full flex items-center justify-center text-paper/55 hover:text-accent hover:bg-paper/[0.035] transition-colors border-l border-hairline-strong"
             >
               {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
-            </button>
-            <button
-              onClick={() => setMethodOpen(true)}
-              className="flex items-center gap-1.5 text-[10.5px] tabular tracking-[0.18em] uppercase text-paper/55 hover:text-accent transition-colors px-2 py-1.5 font-mono"
-            >
-              <Info size={12} />
-              Metodologia
             </button>
           </div>
         </div>
@@ -147,8 +156,6 @@ export default function App() {
       <AnimatePresence>
         {methodOpen && (
           <MethodologyModal
-            modo={modo}
-            pesos={pesosNormalizados}
             onClose={() => setMethodOpen(false)}
           />
         )}
@@ -804,7 +811,7 @@ function BadgeRow({ ids, accent }) {
 
 /* ───────────────── METHODOLOGY MODAL ───────────────── */
 
-function MethodologyModal({ modo, pesos, onClose }) {
+function MethodologyModal({ onClose }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -819,7 +826,7 @@ function MethodologyModal({ modo, pesos, onClose }) {
         exit={{ y: 16, opacity: 0 }}
         transition={{ duration: 0.25 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-ink-deeper border border-hairline-strong max-w-2xl w-full p-7 relative max-h-[85vh] overflow-y-auto"
+        className="bg-ink-deeper border border-hairline-strong max-w-4xl w-full p-6 relative max-h-[calc(100vh-48px)] overflow-y-auto"
       >
         <button
           onClick={onClose}
@@ -830,82 +837,135 @@ function MethodologyModal({ modo, pesos, onClose }) {
         </button>
 
         <div className="text-[10px] tabular tracking-[0.22em] uppercase text-amber font-mono mb-1">
-          Metodologia · v0.1
+          Metodologia · Hackathon E+ 2026
         </div>
         <h2 className="font-display text-3xl font-light tracking-tightest text-paper leading-[1.1] mb-3">
-          Como o score é calculado.
+          Como o indicador municipal é calculado.
         </h2>
         <p className="text-[12.5px] text-paper/65 leading-relaxed mb-5">
-          Cada município recebe seis sub-scores normalizados de 0 a 100. O score final é uma média
-          ponderada — os pesos vêm do <span className="text-amber">modo de análise</span>{" "}
-          selecionado no topo.
+          A metodologia combina bases oficiais da ANP, ANEEL e IBGE para avaliar 1.938
+          municípios em cinco fontes de energia: solar, eólica, biometano, hidrogênio verde e
+          biomassa.
         </p>
+
+        <div className="grid grid-cols-3 gap-3 mb-5">
+          <MethodMetric value="1.938" label="municípios únicos" />
+          <MethodMetric value="5" label="fontes avaliadas" />
+          <MethodMetric value="3" label="blocos temáticos" />
+        </div>
 
         <div className="border border-hairline-strong p-4 mb-5">
           <div className="text-[10px] tabular tracking-[0.22em] uppercase text-amber font-mono mb-3">
-            Critérios e pesos no modo {MODOS[modo].label}
+            Pipeline de dados
           </div>
-          <div className="space-y-2">
-            {CRITERIOS.map((c) => {
-              const pct = (pesos[c.id] * 100).toFixed(0);
-              return (
-                <div key={c.id} className="flex items-center gap-3">
-                  <span className="text-[12px] text-paper/85 flex-1">{c.label}</span>
-                  <div className="w-32 h-1.5 bg-paper/[0.06]">
-                    <div
-                      className="h-full bg-amber"
-                      style={{ width: `${pct * 2}%` }}
-                    />
-                  </div>
-                  <span className="text-[11px] font-mono tabular text-amber w-9 text-right">
-                    {pct}%
-                  </span>
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-3 gap-3">
+            <MethodBlock
+              label="Bases oficiais"
+              text="Arquivos CSV da ANP, ANEEL e IBGE formam a base inicial do indicador."
+            />
+            <MethodBlock
+              label="Padronização"
+              text="Municípios são normalizados, sem acentos e com tratamento de inconsistências tipográficas."
+            />
+            <MethodBlock
+              label="core_df"
+              text="A base principal consolida município, UF, latitude e longitude média dos empreendimentos."
+            />
           </div>
-          <p className="text-[10.5px] text-paper/45 mt-3 leading-snug">
-            Mude o modo de análise no topo da tela para reponderar o score.
-          </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-3 gap-4 mb-5">
           <MethodSection
-            label="Conectado nesta versão"
-            tone="ok"
+            label="Econômico · 40%"
             items={[
-              "ANEEL SIGA — base conceitual de capacidade renovável (mock)",
-              "Estrutura de dados inspirada em master_df.csv",
-              "Modos de análise pré-configurados",
+              "Potência instalada e ociosa",
+              "Participação renovável",
+              "Biometano e transmissão",
             ]}
           />
           <MethodSection
-            label="Próxima versão"
-            tone="warn"
+            label="Social · 30%"
             items={[
-              "ONS — margem de escoamento por subestação",
-              "INPE — irradiação solar e atlas de vento",
-              "IBGE CEMPRE — empregos industriais por CNAE × município",
-              "SAFMaps — flaring siderúrgico, biomassa, indicadores ESG",
-              "PNCP, BNDES, REIDI, SUDENE/SUDAM, FNE/FNO/FCO",
+              "Diversidade de fontes",
+              "Plantas em operação",
+              "Maturidade energética local",
             ]}
           />
+          <MethodSection
+            label="Ambiental · 30%"
+            items={[
+              "CO2 evitado ao ano",
+              "Projetos de transmissão",
+              "Produção de biometano por UF",
+            ]}
+          />
+        </div>
+
+        <div className="grid grid-cols-[1fr_1.15fr] gap-5">
+          <div className="border border-hairline-strong p-4">
+            <div className="text-[10px] tabular tracking-[0.22em] uppercase text-amber font-mono mb-2">
+              Normalização
+            </div>
+            <p className="text-[11.5px] text-paper/75 leading-relaxed mb-3">
+              Cada variável é normalizada globalmente para o intervalo [0, 1] pela transformação
+              min-max. Variáveis constantes recebem 0,5; valores ausentes são tratados como 0.
+            </p>
+            <div className="font-mono text-[12px] text-paper bg-paper/[0.04] border border-hairline p-3">
+              v_norm = (v - min) / (max - min)
+            </div>
+          </div>
+
+          <div className="border border-hairline-strong p-4">
+            <div className="text-[10px] tabular tracking-[0.22em] uppercase text-amber font-mono mb-2">
+              Score composto
+            </div>
+            <p className="text-[11.5px] text-paper/75 leading-relaxed mb-3">
+              Para cada par município × fonte, o modelo calcula sub-scores econômico, social e
+              ambiental e combina os blocos por média ponderada.
+            </p>
+            <div className="font-mono text-[12px] text-paper bg-paper/[0.04] border border-hairline p-3">
+              score = 0,40 × eco + 0,30 × social + 0,30 × ambiental
+            </div>
+          </div>
         </div>
 
         <div className="mt-5 hatch p-3.5 border border-amber/30 flex items-start gap-2.5">
           <Info size={14} className="text-amber flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-[10px] tabular tracking-[0.22em] uppercase text-amber font-mono mb-0.5">
-              Aviso
+              Saída do modelo
             </p>
             <p className="text-[11.5px] text-paper/80 leading-relaxed">
-              Os números operacionais por município nesta v0.1 são <strong>estimativas mockadas</strong> para validar o fluxo de decisão. Não usar como insumo de
-              investimento real.
+              O resultado final é um score entre 0 e 1 por município × fonte. O ranking completo
+              preserva as cinco fontes por município; a base de melhor fonte retém apenas o par de
+              rank 1 pelo método dense rank.
             </p>
           </div>
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+function MethodMetric({ value, label }) {
+  return (
+    <div className="border border-hairline-strong p-3">
+      <div className="font-display text-2xl font-light text-amber leading-none">{value}</div>
+      <div className="text-[10px] tabular tracking-[0.18em] uppercase text-paper/55 font-mono mt-1">
+        {label}
+      </div>
+    </div>
+  );
+}
+
+function MethodBlock({ label, text }) {
+  return (
+    <div className="border-l-2 border-amber pl-3">
+      <div className="text-[10px] tabular tracking-[0.18em] uppercase text-paper/55 font-mono mb-1">
+        {label}
+      </div>
+      <p className="text-[11.5px] text-paper/75 leading-relaxed">{text}</p>
+    </div>
   );
 }
 
