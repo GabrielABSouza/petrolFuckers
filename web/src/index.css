@@ -3,24 +3,85 @@
 @tailwind utilities;
 
 :root {
-  /* Dark navy institucional — alinhado com paleta PID */
+  /* Surface tokens — flipam entre temas. RGB triplets (sem vírgula) pra suportar alpha. */
+  --ink-rgb: 5 39 75;            /* #05274b — ainda usado como inset em dark */
+  --ink-deeper-rgb: 3 26 51;     /* #031a33 */
+  --ink-deepest-rgb: 2 15 31;    /* #020f1f */
+  --paper-rgb: 244 241 234;      /* #f4f1ea */
+  --bone-rgb: 232 227 214;       /* #e8e3d6 */
+  --mist-rgb: 190 204 204;       /* #becccc */
+  --mist-400-rgb: 168 185 185;   /* #a8b9b9 */
+
+  /* Hairline (border sutil) — paper@8%/18% em dark, navy@8%/18% em light */
+  --hairline-rgb: 244 241 234;
+
+  /* Accent (hover/focus) — flipa entre temas */
+  --accent-rgb: 252 194 10;      /* dark default = amber */
+  --accent: #fcc20a;
+
+  /* Aliases hex pra uso em SVGs e estilos não-Tailwind (ex: scoring.js) */
   --ink: #05274b;
   --ink-deeper: #031a33;
   --ink-deepest: #020f1f;
-  /* Foreground warm */
   --paper: #f4f1ea;
   --bone: #e8e3d6;
-  /* Cyan PID (#becccc) — acento frio reservado */
   --mist: #becccc;
-  /* Escala quente PID */
+
+  /* Score scale — fixas em ambos os temas */
   --amber: #fcc20a;
   --amber-dim: #d4a309;
   --mango: #fc9e24;
   --ember: #fc6926;
   --cinder: #fa441a;
   --graphite: #181818;
+
+  /* Hairlines theme-aware */
   --hairline: rgba(244, 241, 234, 0.08);
   --hairline-strong: rgba(244, 241, 234, 0.18);
+
+  /* Texturas (decorativas) */
+  --texture-tint: rgba(244, 241, 234, 0.012);
+  --topo-dot: rgba(244, 241, 234, 0.045);
+
+  /* Strokes do mapa — flipam pra ficar visíveis em ambos os temas */
+  --map-stroke-soft: rgba(244, 241, 234, 0.025);
+  --map-stroke-mid: rgba(244, 241, 234, 0.18);
+  --map-stroke-strong: rgba(244, 241, 234, 0.32);
+}
+
+[data-theme="light"] {
+  /* Surface vira claro; foreground vira navy PID */
+  --ink-rgb: 232 227 214;        /* #e8e3d6 — inset levemente tingido */
+  --ink-deeper-rgb: 244 241 234; /* #f4f1ea — body bg, warm cream institucional E+ */
+  --ink-deepest-rgb: 255 255 255;/* #ffffff — cards (elevated) */
+  --paper-rgb: 3 37 77;          /* #03254d — texto principal (navy oficial PID) */
+  --bone-rgb: 26 53 89;          /* #1a3559 — texto secundário */
+  --mist-rgb: 91 122 122;        /* #5b7a7a — mist escurecido pra contraste em light */
+  --mist-400-rgb: 110 138 138;
+
+  /* Hairline flipa pra navy — bordas sutis sobre cream */
+  --hairline-rgb: 3 37 77;
+
+  /* Accent flipa pra cinder (#fa441a) — contraste ~4:1 sobre cream */
+  --accent-rgb: 250 68 26;
+  --accent: #fa441a;
+
+  --ink: #e8e3d6;
+  --ink-deeper: #f4f1ea;
+  --ink-deepest: #ffffff;
+  --paper: #03254d;
+  --bone: #1a3559;
+  --mist: #5b7a7a;
+
+  --hairline: rgba(3, 37, 77, 0.10);
+  --hairline-strong: rgba(3, 37, 77, 0.22);
+
+  --texture-tint: rgba(3, 37, 77, 0.020);
+  --topo-dot: rgba(3, 37, 77, 0.060);
+
+  --map-stroke-soft: rgba(3, 37, 77, 0.05);
+  --map-stroke-mid: rgba(3, 37, 77, 0.20);
+  --map-stroke-strong: rgba(3, 37, 77, 0.38);
 }
 
 * {
@@ -54,6 +115,14 @@ body::before {
 }
 .hairline-strong {
   border-color: var(--hairline-strong);
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
 input[type="range"].radar-slider {
@@ -160,15 +229,15 @@ input[type="range"].radar-slider::-moz-range-thumb {
     to bottom,
     transparent,
     transparent 2px,
-    rgba(244, 241, 234, 0.012) 2px,
-    rgba(244, 241, 234, 0.012) 3px
+    var(--texture-tint) 2px,
+    var(--texture-tint) 3px
   );
 }
 
 .topo-dots {
   background-image: radial-gradient(
     circle at center,
-    rgba(244, 241, 234, 0.045) 0.7px,
+    var(--topo-dot) 0.7px,
     transparent 1px
   );
   background-size: 14px 14px;

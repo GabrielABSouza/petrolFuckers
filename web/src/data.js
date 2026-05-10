@@ -376,16 +376,12 @@ export const MODOS = {
   },
 };
 
-export const PERSONAS = {
-  investidor: {
-    label: "Investidor",
-    descricao: "Otimiza viabilidade econômica e velocidade de implementação.",
-  },
-  orgao_publico: {
-    label: "Órgão público",
-    descricao: "Otimiza desenvolvimento regional e justiça territorial.",
-  },
-};
+export const INSIGHTS_HEADER = [
+  "PA lidera H2 Verde — Pecém com score 0,61, 4 dos top 5 em PA e MG.",
+  "REIDI 2025 aprovou 47 novos projetos renováveis, 60% no Nordeste.",
+  "Biometano: 51% da capacidade outorgada está ociosa — gargalo a destravar.",
+  "Vale do Aço: oportunidade biometano-siderurgia mapeada em 4 municípios.",
+];
 
 export const CRITERIOS = [
   { id: "recurso", label: "Energia renovável", abrev: "energia" },

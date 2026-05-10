@@ -68,9 +68,6 @@ export default function BrazilMap({ municipios, scores, selectedId, compareId, o
             n={municipios.length}
           </div>
         </div>
-        <div className="text-[10px] tabular tracking-[0.18em] uppercase text-paper/45 font-mono text-right">
-          modo: <span className="text-amber">{modo}</span>
-        </div>
       </div>
 
       {/* Status ao vivo */}
@@ -113,7 +110,7 @@ export default function BrazilMap({ municipios, scores, selectedId, compareId, o
               y1="0"
               x2="0"
               y2="6"
-              stroke="rgba(244,241,234,0.025)"
+              stroke="var(--map-stroke-soft)"
               strokeWidth="1"
             />
           </pattern>
@@ -134,7 +131,7 @@ export default function BrazilMap({ municipios, scores, selectedId, compareId, o
               key={f.properties?.uf || i}
               d={pathFn(f)}
               fill="url(#hatch)"
-              stroke="rgba(244, 241, 234, 0.18)"
+              stroke="var(--map-stroke-mid)"
               strokeWidth="0.6"
               strokeLinejoin="round"
             />
@@ -148,7 +145,7 @@ export default function BrazilMap({ municipios, scores, selectedId, compareId, o
               key={`outline-${i}`}
               d={pathFn(f)}
               fill="none"
-              stroke="rgba(244, 241, 234, 0.32)"
+              stroke="var(--map-stroke-strong)"
               strokeWidth="0.8"
               strokeLinejoin="round"
               strokeLinecap="round"

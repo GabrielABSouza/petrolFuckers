@@ -1,32 +1,25 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Lightbulb, X, GitCompareArrows, Info, Compass, MousePointerClick, MessagesSquare, Plus } from "lucide-react";
+import { Lightbulb, X, GitCompareArrows, Info, Compass, MousePointerClick, MessagesSquare, Plus, Sun, Moon, Sparkles } from "lucide-react";
 
 import {
   MUNICIPIOS,
   MODOS,
-  PERSONAS,
   CRITERIOS,
-  PESO_DEFAULTS,
   INSTRUMENTOS_LABELS,
   CATEGORIAS_INSTRUMENTOS,
+  INSIGHTS_HEADER,
 } from "./data";
 import { computeBreakdown, computeFinalScore, principais } from "./scoring";
 import BrazilMap from "./BrazilMap";
 import Copiloto from "./Copiloto";
 
 export default function App() {
-  const [persona, setPersona] = useState("investidor");
-  const [modo, setModo] = useState("renovaveis");
-  const [pesos, setPesos] = useState({ ...PESO_DEFAULTS });
+  const modo = "renovaveis";
+  const pesos = MODOS[modo].pesos;
   const [selectedId, setSelectedId] = useState(null);
   const [compareId, setCompareId] = useState(null);
   const [methodOpen, setMethodOpen] = useState(false);
-
-  const setModoComPesos = useCallback((novoModo) => {
-    setModo(novoModo);
-    setPesos({ ...MODOS[novoModo].pesos });
-  }, []);
 
   const pesosNormalizados = useMemo(() => {
     const total = Object.values(pesos).reduce((a, b) => a + b, 0) || 1;
@@ -53,77 +46,53 @@ export default function App() {
     [selectedId]
   );
 
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === "undefined") return "dark";
+    return localStorage.getItem("pid-theme") === "light" ? "light" : "dark";
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem("pid-theme", theme);
+  }, [theme]);
+
   const ctxCopiloto = {
     selecionado,
     ranking,
     modo,
     pesos: pesosNormalizados,
-    persona,
     scores,
   };
 
   return (
     <div className="h-screen bg-ink-deeper text-paper relative flex flex-col overflow-hidden">
-      {/* HEADER com brand + lente + modo + methodology */}
+      {/* HEADER — logo PID + notícias rotativas + theme toggle + methodology */}
       <header className="border-b border-hairline-strong bg-ink-deeper/95 backdrop-blur flex-shrink-0">
-        <div className="px-6 h-[72px] flex items-center gap-6">
-          {/* Brand */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <RadarMark />
-            <div>
-              <div className="font-display text-[22px] leading-none font-light tracking-ultratight text-paper">
-                Radar<span className="text-amber"> PID</span>
-              </div>
-              <div className="text-[10px] tabular tracking-[0.22em] uppercase text-paper/50 font-mono mt-0.5">
-                Triagem · Energia limpa · Convergência pública
-              </div>
-            </div>
+        <div className="h-[88px] grid grid-cols-[340px_minmax(0,1fr)_400px]">
+          {/* Brand — logo PID maior, sem texto verbal */}
+          <div className="h-full flex items-center px-6 border-r border-hairline-strong">
+            <img
+              src="/logo-pid.svg"
+              alt="PID — Plataforma Interativa de Descarbonização"
+              className="h-[68px] w-auto flex-shrink-0"
+            />
           </div>
 
-          <div className="h-10 w-px bg-hairline-strong" />
+          {/* Notícias rotativas */}
+          <NoticiasCarousel />
 
-          {/* LENTE */}
-          <HeaderControl label="Lente">
-            <div className="flex border border-hairline-strong">
-              {Object.entries(PERSONAS).map(([id, p]) => (
-                <button
-                  key={id}
-                  onClick={() => setPersona(id)}
-                  className={`px-3 py-1.5 text-[11px] tracking-wide transition-colors ${
-                    persona === id
-                      ? "bg-amber text-ink-deepest font-medium"
-                      : "text-paper/75 hover:text-amber"
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-          </HeaderControl>
-
-          {/* MODO */}
-          <HeaderControl label="Modo de análise">
-            <div className="flex border border-hairline-strong">
-              {Object.entries(MODOS).map(([id, m]) => (
-                <button
-                  key={id}
-                  onClick={() => setModoComPesos(id)}
-                  className={`px-3 py-1.5 text-[11px] tracking-wide transition-colors whitespace-nowrap ${
-                    modo === id
-                      ? "bg-amber text-ink-deepest font-medium"
-                      : "text-paper/75 hover:text-amber"
-                  }`}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
-          </HeaderControl>
-
-          <div className="ml-auto flex items-center">
+          {/* Cluster direito: theme + metodologia */}
+          <div className="h-full flex items-center justify-center gap-4 border-l border-hairline-strong">
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              aria-label={theme === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro"}
+              className="w-8 h-8 flex items-center justify-center text-paper/55 hover:text-accent transition-colors border border-hairline-strong"
+            >
+              {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+            </button>
             <button
               onClick={() => setMethodOpen(true)}
-              className="flex items-center gap-1.5 text-[10.5px] tabular tracking-[0.18em] uppercase text-paper/55 hover:text-amber transition-colors px-2 py-1.5 font-mono"
+              className="flex items-center gap-1.5 text-[10.5px] tabular tracking-[0.18em] uppercase text-paper/55 hover:text-accent transition-colors px-2 py-1.5 font-mono"
             >
               <Info size={12} />
               Metodologia
@@ -134,7 +103,7 @@ export default function App() {
 
       {/* GRID principal */}
       <div className="grid grid-cols-[340px_minmax(0,1fr)_400px] flex-1 min-h-0">
-        <aside className="border-r border-hairline-strong bg-ink-deepest/40 overflow-y-auto">
+        <aside className="border-r border-hairline-strong bg-ink-deepest/40 overflow-y-auto scrollbar-none">
           {selecionado && compareId && compareId !== selecionado.id ? (
             <CompareView
               a={selecionado}
@@ -190,45 +159,54 @@ export default function App() {
 
 /* ─────────────────────────────────────────────────────────────────────────── */
 
-function RadarMark() {
-  return (
-    <svg width="36" height="36" viewBox="0 0 36 36" className="flex-shrink-0">
-      <circle cx="18" cy="18" r="16" fill="none" stroke="var(--amber)" strokeWidth="0.5" />
-      <circle
-        cx="18"
-        cy="18"
-        r="10"
-        fill="none"
-        stroke="var(--amber)"
-        strokeWidth="0.5"
-        strokeDasharray="2 2"
-      />
-      <circle cx="18" cy="18" r="4" fill="none" stroke="var(--amber)" strokeWidth="0.5" />
-      <line x1="18" y1="2" x2="18" y2="34" stroke="var(--amber)" strokeWidth="0.4" strokeOpacity="0.4" />
-      <line x1="2" y1="18" x2="34" y2="18" stroke="var(--amber)" strokeWidth="0.4" strokeOpacity="0.4" />
-      <motion.line
-        x1="18"
-        y1="18"
-        x2="18"
-        y2="2"
-        stroke="var(--amber)"
-        strokeWidth="1.2"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-        style={{ transformOrigin: "18px 18px" }}
-      />
-      <circle cx="18" cy="18" r="1.5" fill="var(--amber)" />
-    </svg>
-  );
-}
+function NoticiasCarousel() {
+  const [idx, setIdx] = useState(0);
 
-function HeaderControl({ label, children }) {
+  useEffect(() => {
+    const t = setInterval(
+      () => setIdx((p) => (p + 1) % INSIGHTS_HEADER.length),
+      5000
+    );
+    return () => clearInterval(t);
+  }, []);
+
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-[9px] tabular tracking-[0.22em] uppercase text-paper/45 font-mono">
-        {label}
-      </span>
-      {children}
+    <div className="h-full grid grid-cols-[104px_minmax(0,1fr)_56px] items-center gap-4 px-6">
+      {/* Eyebrow */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <Sparkles size={12} className="text-amber" />
+        <span className="text-[9px] tabular tracking-[0.22em] uppercase text-paper/45 font-mono">
+          Notícias
+        </span>
+      </div>
+
+      {/* Texto rotativo */}
+      <div className="relative h-10 overflow-hidden flex-1 min-w-0">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={idx}
+            initial={{ y: 18, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -18, opacity: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="absolute inset-0 flex items-center justify-center text-center text-[12px] text-paper/85 font-sans leading-snug"
+          >
+            {INSIGHTS_HEADER[idx]}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Indicadores de progresso */}
+      <div className="flex gap-1 flex-shrink-0 justify-end">
+        {INSIGHTS_HEADER.map((_, i) => (
+          <span
+            key={i}
+            className={`h-1 transition-all duration-300 ${
+              i === idx ? "w-4 bg-amber" : "w-1 bg-paper/20"
+            }`}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -293,7 +271,7 @@ function TutorialPanel({ ranking, scores, onSelect }) {
             <button
               key={m.id}
               onClick={() => onSelect(m.id)}
-              className="w-full flex items-baseline justify-between text-left border-l-2 border-amber pl-3 py-1.5 hover:bg-amber/5 transition-colors"
+              className="w-full flex items-baseline justify-between text-left border-l-2 border-amber pl-3 py-1.5 hover:bg-accent/5 transition-colors"
             >
               <span className="text-[12.5px] text-paper">
                 <span className="font-mono tabular text-amber mr-2">{i + 1}</span>
@@ -379,8 +357,8 @@ function MunicipioCompacto({
             onClick={() => setPickerOpen((v) => !v)}
             className={`flex items-center gap-1 px-2 py-1 text-[10px] tabular tracking-[0.16em] uppercase font-mono border transition-colors ${
               pickerOpen
-                ? "bg-amber text-ink-deepest border-amber"
-                : "border-amber/60 text-amber hover:bg-amber/10"
+                ? "bg-amber text-[#03254d] border-amber"
+                : "border-amber/60 text-amber hover:bg-accent/10"
             }`}
             title="Comparar com outro município"
           >
@@ -389,7 +367,7 @@ function MunicipioCompacto({
           </button>
           <button
             onClick={onClose}
-            className="text-paper/45 hover:text-amber p-1"
+            className="text-paper/45 hover:text-accent p-1"
             aria-label="Fechar análise"
             title="Voltar ao tutorial"
           >
@@ -411,7 +389,7 @@ function MunicipioCompacto({
                 setPickerOpen(false);
               }
             }}
-            className="w-full bg-ink-deepest border border-hairline-strong px-2.5 py-1.5 text-xs text-paper hover:border-amber focus:border-amber focus:outline-none font-mono"
+            className="w-full bg-ink-deepest border border-hairline-strong px-2.5 py-1.5 text-xs text-paper hover:border-accent focus:border-accent focus:outline-none font-mono"
             autoFocus
           >
             <option value="" className="bg-ink-deepest">
@@ -617,7 +595,7 @@ function CompareView({ a, b, scores, ranking, onExit, onChangeB }) {
         </div>
         <button
           onClick={onExit}
-          className="text-paper/45 hover:text-amber p-1 -mr-1"
+          className="text-paper/45 hover:text-accent p-1 -mr-1"
           aria-label="Sair da comparação"
           title="Voltar à análise individual"
         >
@@ -712,7 +690,7 @@ function CompareView({ a, b, scores, ranking, onExit, onChangeB }) {
         <select
           value={b.id}
           onChange={(e) => onChangeB(e.target.value)}
-          className="w-full bg-transparent border border-hairline-strong px-2.5 py-1.5 text-xs text-paper hover:border-amber focus:border-amber focus:outline-none font-mono"
+          className="w-full bg-transparent border border-hairline-strong px-2.5 py-1.5 text-xs text-paper hover:border-accent focus:border-accent focus:outline-none font-mono"
         >
           {ranking
             .filter((m) => m.id !== a.id)
@@ -845,7 +823,7 @@ function MethodologyModal({ modo, pesos, onClose }) {
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-paper/55 hover:text-amber"
+          className="absolute top-4 right-4 text-paper/55 hover:text-accent"
           aria-label="Fechar"
         >
           <X size={18} />

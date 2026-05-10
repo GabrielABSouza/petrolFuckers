@@ -4,29 +4,36 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Dark navy institucional — chrome principal
+        // Tokens semânticos de superfície/foreground — flipam entre temas via CSS vars
         ink: {
-          DEFAULT: "#05274b",
-          deeper: "#031a33",
-          deepest: "#020f1f",
+          DEFAULT: "rgb(var(--ink-rgb) / <alpha-value>)",
+          deeper: "rgb(var(--ink-deeper-rgb) / <alpha-value>)",
+          deepest: "rgb(var(--ink-deepest-rgb) / <alpha-value>)",
         },
-        // Foreground sobre dark
-        paper: "#f4f1ea",
-        bone: "#e8e3d6",
-        // Cyan claro PID — reservado para acentos frios em badges/highlights
+        paper: "rgb(var(--paper-rgb) / <alpha-value>)",
+        bone: "rgb(var(--bone-rgb) / <alpha-value>)",
         mist: {
-          DEFAULT: "#becccc",
-          400: "#a8b9b9",
+          DEFAULT: "rgb(var(--mist-rgb) / <alpha-value>)",
+          400: "rgb(var(--mist-400-rgb) / <alpha-value>)",
         },
-        // Escala quente PID (amarelo → vermelho) — paleta institucional do Instituto E+
+        // Hairline (borders sutis) — theme-aware via CSS var. Alpha hard-coded.
+        hairline: {
+          DEFAULT: "rgb(var(--hairline-rgb) / 0.08)",
+          strong: "rgb(var(--hairline-rgb) / 0.18)",
+        },
+        // Accent token — APENAS pra hover/focus rings. Theme-aware: dark=amber, light=cinder.
+        accent: {
+          DEFAULT: "rgb(var(--accent-rgb) / <alpha-value>)",
+        },
+        // Score scale — FIXAS em ambos os temas (semânticas)
         amber: {
           DEFAULT: "#fcc20a",
           dim: "#d4a309",
         },
-        mango: "#fc9e24", // NOVO — laranja-amarelo da paleta PID
+        mango: "#fc9e24",
         ember: "#fc6926",
         cinder: "#fa441a",
-        graphite: "#181818", // text preto profundo da PID
+        graphite: "#181818",
         moss: "#5b7a6a",
         slate: {
           dim: "#94a3b8",

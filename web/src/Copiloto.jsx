@@ -75,7 +75,7 @@ function descricaoInstrumento(id) {
 }
 
 function gerarResposta(pergunta, ctx) {
-  const { selecionado, ranking, modo, persona, scores } = ctx;
+  const { selecionado, ranking, modo, scores } = ctx;
   const p = pergunta.toLowerCase();
 
   // INCENTIVOS / ELEGIBILIDADE
@@ -237,7 +237,7 @@ function gerarResposta(pergunta, ctx) {
     const m = selecionado;
     const b = scores[m.id].breakdown;
     return [
-      `Tradução para gestor público (lente atual: ${persona === "orgao_publico" ? "órgão público" : "investidor"}):`,
+      `Análise contextual:`,
       "",
       `${m.apelido || m.municipio}/${m.uf} pontua ${scores[m.id].final}/100.`,
       `Desenvolvimento regional: ${b.desenvolvimento}/100 — ${b.desenvolvimento > 70 ? "alto, caso de transição justa" : b.desenvolvimento > 50 ? "médio" : "baixo"}.`,
@@ -335,7 +335,7 @@ export default function Copiloto({ ctx }) {
                 <button
                   key={s}
                   onClick={() => handleSend(s)}
-                  className="block w-full text-left text-[12.5px] text-paper/85 border-l-2 border-hairline-strong hover:border-amber hover:text-amber pl-3 py-1.5 transition-colors leading-snug"
+                  className="block w-full text-left text-[12.5px] text-paper/85 border-l-2 border-hairline-strong hover:border-accent hover:text-accent pl-3 py-1.5 transition-colors leading-snug"
                 >
                   {s}
                 </button>
@@ -353,7 +353,7 @@ export default function Copiloto({ ctx }) {
                 className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}
               >
                 {msg.role === "user" ? (
-                  <div className="bg-amber text-ink-deepest text-sm px-3 py-2 max-w-[88%] font-medium leading-snug">
+                  <div className="bg-amber text-[#03254d] text-sm px-3 py-2 max-w-[88%] font-medium leading-snug">
                     {msg.text}
                   </div>
                 ) : (
@@ -385,11 +385,11 @@ export default function Copiloto({ ctx }) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Pergunte ao copiloto…"
-          className="flex-1 bg-transparent border border-hairline-strong px-3 py-2 text-sm text-paper placeholder-paper/40 focus:outline-none focus:border-amber font-sans"
+          className="flex-1 bg-transparent border border-hairline-strong px-3 py-2 text-sm text-paper placeholder-paper/40 focus:outline-none focus:border-accent font-sans"
         />
         <button
           type="submit"
-          className="bg-amber text-ink-deepest px-3 hover:bg-amber-dim transition-colors disabled:opacity-30"
+          className="bg-amber text-[#03254d] px-3 hover:bg-amber-dim transition-colors disabled:opacity-30"
           disabled={!input.trim()}
           aria-label="Enviar"
         >
