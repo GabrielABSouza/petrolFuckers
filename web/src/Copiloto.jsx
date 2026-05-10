@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "motion/react";
 import { ArrowUp, Sparkles } from "lucide-react";
-import { CRITERIOS, MODOS, INSTRUMENTOS_LABELS, CATEGORIAS_INSTRUMENTOS } from "./data";
-import { principais } from "./scoring";
+
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
 const SUGESTOES = [
   "Quais incentivos públicos podem se aplicar?",
@@ -13,289 +13,65 @@ const SUGESTOES = [
   "Quais dados ainda são mockados?",
 ];
 
-const CARIMBO =
-  "↗ resposta gerada do estado da app · todos os instrumentos são triagem, não parecer jurídico";
-
-function gerarBriefingMunicipio(m, sc) {
-  const { forca, gargalo } = principais(sc.breakdown);
-  const grupos = agruparInstrumentos(m.instrumentosPublicos);
-  const linhas = [
-    `Briefing: ${m.apelido || m.municipio}/${m.uf}`,
-    "",
-    `Score de triagem ${sc.final}/100. Força: ${labelCriterio(forca)}. Gargalo: ${labelCriterio(gargalo)}.`,
-    "",
-    `Convergência pública preliminar — ${m.convergenciaPublicaScore}/100`,
-    ...Object.entries(grupos).map(
-      ([cat, lista]) =>
-        `  ${CATEGORIAS_INSTRUMENTOS[cat].glifo} ${CATEGORIAS_INSTRUMENTOS[cat].label}: ${lista
-          .map((id) => INSTRUMENTOS_LABELS[id].nome)
-          .join(", ")}`
-    ),
-    "",
-    "Pergunte 'quais incentivos podem se aplicar?' para abrir cada instrumento.",
-    "",
-    CARIMBO,
-  ];
-  return linhas.join("\n");
-}
-
-function labelCriterio(id) {
-  return CRITERIOS.find((c) => c.id === id)?.label.toLowerCase() || id;
-}
-
-function agruparInstrumentos(lista) {
-  const out = {};
-  for (const id of lista) {
-    const inst = INSTRUMENTOS_LABELS[id];
-    if (!inst) continue;
-    if (!out[inst.categoria]) out[inst.categoria] = [];
-    out[inst.categoria].push(id);
-  }
-  return out;
-}
-
-function descricaoInstrumento(id) {
-  const map = {
-    REIDI: "regime fiscal especial p/ infra (suspende PIS/COFINS)",
-    SUDENE: "incentivo IRPJ até 75% para projetos no Nordeste",
-    SUDAM: "incentivo IRPJ até 75% para projetos na Amazônia Legal",
-    Debentures: "captação de longo prazo c/ benefício fiscal ao investidor",
-    FNE: "Banco do Nordeste — linhas verdes c/ taxa subsidiada",
-    FNO: "Banco da Amazônia — linhas verdes c/ taxa subsidiada",
-    FCO: "Banco do Brasil — Centro-Oeste, energia + agro",
-    BNDES: "linhas Climate Finance / Energia / TIC",
-    Leilao: "leilões A-3/A-4/A-5 e LRCAP — receita regulada",
-    PNCP: "editais e contratos abertos por palavra-chave",
-    Transferegov: "convênios e parcerias federais",
-    Obrasgov: "obras públicas em execução próximas",
-    PAC: "carteira do Novo PAC — eixo energia/conectividade",
-    REDATA: "Política Nacional de Data Centers — incentivo p/ energia limpa",
-  };
-  return map[id] || "instrumento público";
-}
-
-function gerarResposta(pergunta, ctx) {
-  const { selecionado, ranking, modo, scores } = ctx;
-  const p = pergunta.toLowerCase();
-
-  // INCENTIVOS / ELEGIBILIDADE
-  if (p.includes("incentivo") || p.includes("elegibil") || p.includes("instrumento")) {
-    if (!selecionado) {
-      return [
-        "Selecione um município primeiro. Cada um tem instrumentos públicos diferentes.",
-        "",
-        "No geral, o Radar PID rastreia 5 categorias de instrumento:",
-        ...Object.entries(CATEGORIAS_INSTRUMENTOS).map(
-          ([k, v]) => `  ${v.glifo} ${v.label}`
-        ),
-        "",
-        CARIMBO,
-      ].join("\n");
-    }
-    const grupos = agruparInstrumentos(selecionado.instrumentosPublicos);
-    const linhas = [
-      `Instrumentos públicos com sinal preliminar para ${selecionado.apelido || selecionado.municipio}/${selecionado.uf}:`,
-      "",
-    ];
-    Object.entries(grupos).forEach(([cat, lista]) => {
-      linhas.push(
-        `▸ ${CATEGORIAS_INSTRUMENTOS[cat].glifo} ${CATEGORIAS_INSTRUMENTOS[cat].label.toUpperCase()}`
-      );
-      lista.forEach((id) => {
-        const inst = INSTRUMENTOS_LABELS[id];
-        const desc = descricaoInstrumento(id);
-        linhas.push(`   ◇ ${inst.nome} — ${desc}`);
-      });
-      linhas.push("");
-    });
-    linhas.push("Status:");
-    linhas.push("  ◆ confirmado  ◇ proxy/elegibilidade preliminar  ▲ exige validação");
-    linhas.push("");
-    linhas.push(
-      "Próxima validação: cada instrumento tem órgão competente (SUDENE, SUDAM, BNDES, MME). O Radar não emite parecer."
-    );
-    linhas.push("");
-    linhas.push(CARIMBO);
-    return linhas.join("\n");
-  }
-
-  // CONFIRMADO vs TRIAGEM
-  if ((p.includes("confirmad") && p.includes("triag")) || p.includes("validad")) {
-    return [
-      "Distinção importante:",
-      "",
-      "◆ CONFIRMADO — instrumento já contratado/publicado em base oficial (leilão concluído, contrato BNDES assinado).",
-      "◇ PROXY / ELEGIBILIDADE PRELIMINAR — município está em zona de elegibilidade (ex.: SUDENE), mas projeto específico precisa enquadrar.",
-      "▲ EXIGE VALIDAÇÃO — sinal cruzado mas regra muda por ano/setor (ex.: REIDI exige tipo de obra; debêntures exigem prospecto).",
-      "",
-      "Nesta v0.1 TUDO está em modo proxy/preliminar. Nenhum instrumento foi confirmado em base oficial.",
-      "",
-      "Próxima versão conecta:",
-      "  • PNCP / Compras.gov.br — busca temporal de editais",
-      "  • BNDES Dados Abertos — operações já contratadas",
-      "  • ANEEL Leilões — resultados publicados",
-      "  • SUDENE/SUDAM — mapa oficial de zonas elegíveis",
-      "",
-      "O Radar é ferramenta de TRIAGEM — não parecer fiscal nem jurídico.",
-      "",
-      CARIMBO,
-    ].join("\n");
-  }
-
-  if (selecionado && (p.includes("por que") || p.includes("recomenda"))) {
-    const m = selecionado;
-    const b = scores[m.id].breakdown;
-    const { forca, gargalo } = principais(b);
-    return [
-      `${m.apelido || m.municipio}/${m.uf} aparece no ranking porque:`,
-      "",
-      `Força — ${labelCriterio(forca)}: ${b[forca]}/100`,
-      `Gargalo — ${labelCriterio(gargalo)}: ${b[gargalo]}/100`,
-      `Convergência pública: ${m.convergenciaPublicaScore}/100`,
-      "",
-      `Capacidade renovável instalada: ${m.capacidadeRenovavelMw.toLocaleString("pt-BR")} MW`,
-      `Pipeline outorgado: ${m.pipelineMw.toLocaleString("pt-BR")} MW`,
-      `Margem de rede estimada: ${m.margemRedeMw.toLocaleString("pt-BR")} MW`,
-      "",
-      m.observacoes,
-      "",
-      CARIMBO,
-    ].join("\n");
-  }
-
-  if (selecionado && (p.includes("gargalo") || p.includes("destravar"))) {
-    const m = selecionado;
-    const b = scores[m.id].breakdown;
-    const linhas = [];
-    if (b.rede < 60)
-      linhas.push(
-        `▲ Rede (${b.rede}/100): margem de ${m.margemRedeMw} MW, subestação a ${m.distanciaSubestacaoKm} km. Validar com ONS.`
-      );
-    if (b.risco < 70)
-      linhas.push(
-        `▲ Socioambiental (${b.risco}/100): cruzar com Terrabrasilis e Código Florestal antes de licenciar.`
-      );
-    if (b.demanda < 50)
-      linhas.push(`▲ Demanda (${b.demanda}/100): mapear offtake (PPA bilateral ou ACL).`);
-    if (modo === "data_centers" && b.datacenter < 60)
-      linhas.push(
-        `▲ Conectividade (${b.datacenter}/100): fibra a ${m.distanciaFibraKm} km — validar redundância e água.`
-      );
-    if (m.convergenciaPublicaScore < 70)
-      linhas.push(
-        `▲ Convergência pública (${m.convergenciaPublicaScore}/100): poucos instrumentos preliminares — escalar prospecção SUDENE/FNE/BNDES.`
-      );
-    if (linhas.length === 0)
-      linhas.push("Indicadores razoavelmente equilibrados — gargalos são marginais.");
-    return [
-      `Gargalos a destravar em ${m.apelido || m.municipio}/${m.uf}:`,
-      "",
-      ...linhas,
-      "",
-      CARIMBO,
-    ].join("\n");
-  }
-
-  if (p.includes("top 3") || p.includes("compare") || p.includes("comparar")) {
-    const top3 = ranking.slice(0, 3);
-    return [
-      `Top 3 no modo ${MODOS[modo].label}:`,
-      ...top3.map(
-        (m, i) =>
-          `${i + 1}. ${m.apelido || m.municipio}/${m.uf} — score ${scores[m.id].final} · CP ${m.convergenciaPublicaScore} · ${m.instrumentosPublicos.length} instrumentos`
-      ),
-      "",
-      "Convergência pública pesa nas regiões SUDENE (NE), SUDAM (Norte) e FCO (CO).",
-      "",
-      CARIMBO,
-    ].join("\n");
-  }
-
-  if (p.includes("mockad") || (p.includes("dados") && p.includes("real"))) {
-    return [
-      "Tudo o que você vê neste protótipo é mockado:",
-      "",
-      "• 12 municípios fictícios com lat/lng reais",
-      "• capacidadeRenovavelMw / margemRedeMw inspirados em ANEEL SIGA mas não conferidos",
-      "• convergenciaPublicaScore e instrumentosPublicos[] são proxies — nenhum vem de base oficial",
-      "",
-      "Próxima versão substitui por master_df.csv + camada de incentivos:",
-      "  • SUDENE/SUDAM: shapefile oficial de zonas elegíveis",
-      "  • BNDES Dados Abertos: operações já contratadas",
-      "  • PNCP: editais e contratos por palavra-chave",
-      "  • ANEEL Leilões: resultados publicados",
-      "  • FNE/FNO/FCO: bases pontuais de financiamento regional",
-      "",
-      CARIMBO,
-    ].join("\n");
-  }
-
-  if (p.includes("gestor") || (p.includes("explic") && p.includes("público"))) {
-    if (!selecionado) {
-      return ["Selecione um município primeiro.", "", CARIMBO].join("\n");
-    }
-    const m = selecionado;
-    const b = scores[m.id].breakdown;
-    return [
-      `Análise contextual:`,
-      "",
-      `${m.apelido || m.municipio}/${m.uf} pontua ${scores[m.id].final}/100.`,
-      `Desenvolvimento regional: ${b.desenvolvimento}/100 — ${b.desenvolvimento > 70 ? "alto, caso de transição justa" : b.desenvolvimento > 50 ? "médio" : "baixo"}.`,
-      `Convergência pública: ${m.convergenciaPublicaScore}/100, com ${m.instrumentosPublicos.length} instrumentos preliminares mapeados.`,
-      "",
-      "Para política de atração industrial, priorize:",
-      "  1. Destravar gargalos identificados acima",
-      "  2. Cruzar com FNE/FNO/FCO (financiamento regional verde)",
-      "  3. Validar zona SUDENE/SUDAM via shapefile oficial",
-      "  4. Escalar com BNDES via Linha Verde / Climate Finance",
-      "",
-      CARIMBO,
-    ].join("\n");
-  }
-
-  return [
-    selecionado
-      ? `Você selecionou ${selecionado.apelido || selecionado.municipio}/${selecionado.uf}. Posso explicar incentivos públicos aplicáveis, gargalos, ou comparar com outros municípios.`
-      : "Selecione um município no mapa ou no ranking, e eu explico incentivos preliminares e gargalos.",
-    "",
-    "Sugestões abaixo refletem o estado atual da aplicação.",
-    "",
-    CARIMBO,
-  ].join("\n");
-}
-
-/* ───────────────────────────────────────────────────────────── */
-
 export default function Copiloto({ ctx }) {
   const [history, setHistory] = useState([]);
   const [input, setInput] = useState("");
+  const [sessionId] = useState(() => crypto.randomUUID());
+  const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef(null);
   const lastSelectedRef = useRef(null);
 
-  // Briefing automático quando muda município selecionado
   useEffect(() => {
     if (ctx.selecionado && ctx.selecionado.id !== lastSelectedRef.current) {
       lastSelectedRef.current = ctx.selecionado.id;
-      const briefing = gerarBriefingMunicipio(
-        ctx.selecionado,
-        ctx.scores[ctx.selecionado.id]
-      );
+      const m = ctx.selecionado;
+      const briefing = `Município selecionado: ${m.apelido || m.municipio}/${m.uf}. Pergunte algo sobre incentivos, gargalos ou comparações.`;
       setHistory((h) => [...h, { role: "bot", text: briefing, kind: "briefing" }]);
     }
-  }, [ctx.selecionado]); // eslint-disable-line
+  }, [ctx.selecionado]);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [history]);
+  }, [history, isLoading]);
 
-  const handleSend = (text) => {
+  async function callAgent(pergunta) {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/agente/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId,
+          message: pergunta,
+          context: {
+            municipio_selecionado: ctx?.selecionado?.municipio || null,
+            modo: ctx?.modo || null,
+          },
+        }),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`API ${res.status}: ${text}`);
+      }
+      const data = await res.json();
+      return data.message || "(resposta vazia)";
+    } catch (e) {
+      console.error("[copiloto] agent error", e);
+      return `Erro ao consultar o agente: ${e.message}`;
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleSend = async (text) => {
     const q = (text ?? input).trim();
     if (!q) return;
-    const resp = gerarResposta(q, ctx);
-    setHistory((h) => [...h, { role: "user", text: q }, { role: "bot", text: resp }]);
+    setHistory((h) => [...h, { role: "user", text: q }]);
     setInput("");
+    const resp = await callAgent(q);
+    setHistory((h) => [...h, { role: "bot", text: resp }]);
   };
 
   return (
@@ -364,11 +140,41 @@ export default function Copiloto({ ctx }) {
                         : "border-amber"
                     }`}
                   >
-                    {msg.text}
+                    <RichMessage text={msg.text} />
                   </div>
                 )}
               </motion.div>
             ))}
+            {isLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2 }}
+                className="flex justify-start"
+              >
+                <div className="border-l-2 border-amber/60 pl-3 text-[12.5px] text-paper/60 italic flex items-center">
+                  <span>Consultando agente</span>
+                  <span className="ml-1 inline-flex items-end gap-0.5" aria-hidden="true">
+                    {[0, 1, 2].map((i) => (
+                      <motion.span
+                        key={i}
+                        animate={{ y: [0, -3, 0], opacity: [0.35, 1, 0.35] }}
+                        transition={{
+                          duration: 0.75,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                          delay: i * 0.12,
+                        }}
+                        className="inline-block"
+                      >
+                        .
+                      </motion.span>
+                    ))}
+                  </span>
+                </div>
+              </motion.div>
+            )}
           </div>
         )}
       </div>
@@ -398,4 +204,81 @@ export default function Copiloto({ ctx }) {
       </form>
     </div>
   );
+}
+
+function RichMessage({ text }) {
+  const lines = String(text ?? "").split(/\r?\n/);
+  const blocks = [];
+  let bullets = [];
+
+  const flushBullets = () => {
+    if (!bullets.length) return;
+    const items = bullets;
+    bullets = [];
+    blocks.push(
+      <ul key={`ul-${blocks.length}`} className="list-disc pl-4 space-y-1 marker:text-amber">
+        {items.map((item, idx) => (
+          <li key={idx}>{renderInlineMarkdown(item)}</li>
+        ))}
+      </ul>
+    );
+  };
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flushBullets();
+      blocks.push(<div key={`gap-${blocks.length}`} className="h-2" />);
+      return;
+    }
+
+    const bullet = trimmed.match(/^[-*]\s+(.+)$/);
+    if (bullet) {
+      bullets.push(bullet[1]);
+      return;
+    }
+
+    flushBullets();
+    blocks.push(
+      <p key={`p-${blocks.length}`}>
+        {renderInlineMarkdown(trimmed)}
+      </p>
+    );
+  });
+
+  flushBullets();
+  return <div className="space-y-2 whitespace-normal">{blocks}</div>;
+}
+
+function renderInlineMarkdown(text) {
+  const out = [];
+  const pattern = /\*\*([^*]+)\*\*|\*([^*\n]+)\*/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      out.push(text.slice(lastIndex, match.index));
+    }
+    if (match[1]) {
+      out.push(
+        <strong key={`strong-${match.index}`} className="font-semibold text-paper">
+          {match[1]}
+        </strong>
+      );
+    } else {
+      out.push(
+        <em key={`em-${match.index}`} className="text-paper/75">
+          {match[2]}
+        </em>
+      );
+    }
+    lastIndex = pattern.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    out.push(text.slice(lastIndex));
+  }
+
+  return out.length ? out : text;
 }

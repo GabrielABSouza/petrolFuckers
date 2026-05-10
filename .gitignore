@@ -24,6 +24,7 @@ build/
 
 # Outputs binários efêmeros (CSVs e JSONs em data/ SÃO versionados)
 *.parquet
+!api/data/*.parquet
 *.feather
 .cache/
 

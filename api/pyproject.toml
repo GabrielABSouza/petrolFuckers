@@ -1,7 +1,7 @@
 [project]
 name = "radar-pid-api"
-version = "0.1.0"
-description = "API pública do Radar PID — score MCDA municipal de transição energética"
+version = "0.2.0"
+description = "API do Radar PID — score MCDA municipal + agente Copiloto Gemini"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.110,<0.120",
@@ -9,6 +9,8 @@ dependencies = [
     "pandas>=2.0,<3.0",
     "pyarrow>=14,<20",
     "pydantic>=2.5,<3",
+    "google-genai>=1.0,<3.0",
+    "python-dotenv>=1.0",
 ]
 
 [build-system]

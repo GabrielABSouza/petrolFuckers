@@ -45,15 +45,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Radar PID API",
-    version="0.1.0",
-    description="Score MCDA por município × fonte de energia limpa.",
+    version="0.2.0",
+    description="Score MCDA por município × fonte de energia limpa + Agente Copiloto.",
     lifespan=lifespan,
 )
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["GET"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -135,3 +135,7 @@ def ranking(
 @app.get("/insights")
 def insights():
     return {"snapshot_data": SNAPSHOT_DATE, "items": INSIGHTS_HEADER}
+
+
+from src.agente.router import router as agente_router  # noqa: E402
+app.include_router(agente_router)
