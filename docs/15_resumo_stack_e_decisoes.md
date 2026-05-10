@@ -17,7 +17,7 @@
 | Deploy | Vercel (front) + Railway (back) | Docker multi-stage pra API |
 | Documentação | Markdown em `docs/` | Specs prescritivas em `docs/SPEC_*.md` |
 
-**Bundle final:** front ~566 KB JS / 139 KB gzip; back imagem ~250 MB com parquet de 150 KB carregado em RAM.
+**Bundle:** front ~566 KB JS / 139 KB gzip; back imagem ~250 MB com parquet de 150 KB carregado em RAM.
 
 **Custo operacional estimado em produção:** R$ 30–60/mês (Railway hobby + Gemini API com prompt caching).
 
@@ -28,74 +28,59 @@
 - **Cobertura:** 1.938 municípios × 5 fontes (Solar, Eólica, Biometano, H2 Verde, Biomassa) = **9.690 scores**.
 - **Fórmula MCDA:** `score = 0,40 × eco + 0,30 × soc + 0,30 × env`.
 - **Cada bloco:** média NaN-safe de 2–3 variáveis normalizadas via min-max global.
-- **Flag de qualidade:** coluna `data_completeness` (0–1) por linha. **38% das linhas com 100%** das variáveis presentes; **9% com <60%**.
-- **Fontes:** ANEEL SIGA (25.407 empreendimentos), ANP Biometano (492 registros), ANEEL SIGET (1.160 linhas + 2.305 subestações + 10.379 projetos). CO₂ evitado com fator EPE 2023 (0,06 tCO₂/MWh).
+- **Flag de qualidade:** coluna `data_completeness` (0–1) por linha — 38% das linhas com 100% das variáveis presentes; 9% com <60%.
+- **Fontes:** ANEEL SIGA (25.407 empreendimentos), ANP Biometano (492 registros), ANEEL SIGET (1.160 linhas + 2.305 subestações + 10.379 projetos), IBGE Cidades (IDH-M, PIB per capita, taxa de desemprego, % população rural — alimentando o bloco social). CO₂ evitado com fator EPE 2023 (0,06 tCO₂/MWh).
 - **Snapshot atual:** 2026-05-10.
 - **Pipeline offline:** notebook `scriptAnalysis.ipynb` na branch `dados_score_pid` → 3 parquets em `api/data/`.
 
 ---
 
-## 3. Decisões principais (15 cards)
+## 3. Decisões principais
 
 ### 3.1 Produto e UX
 
-**1. Removemos a "Lente Investidor/Órgão público"**
-Era cosmética — a função `computeBreakdown(m)` no scoring nunca usou persona, só mudava strings no Copiloto. Sem efeito no score, simplificou o produto.
+**1. Identidade visual oficial da PID.** Logo SVG no header, paleta navy + cinder + amber, tipografia Fraunces + Geist + JetBrains Mono. Toggle entre tema escuro (cockpit institucional) e claro (alinhado ao site público da PID), com flip via `[data-theme="light"]` no `<html>` — JSX classNames não mudam, CSS-vars fazem o trabalho.
 
-**2. Removemos "Modo de análise" (Renováveis/Data Centers/Neoindustrialização)**
-A modelagem real é per-fonte (Solar/Eólica/Biometano/H2 Verde/Biomassa), não per-tese-de-investimento. Manter Modo na UI sem reflexo no backend seria desonesto.
+**2. Header com carrossel de insights motion.** 4 strings rotativas a cada 5 segundos com `AnimatePresence` (pattern AiPets). Conteúdo mistura 4 tipos: ranking-derived, incentivo público, EDA empírico e caso demonstrativo. Reforça narrativa "PID + IA".
 
-**3. Dual theme dark/light via CSS vars**
-Tema claro alinha com o site público da PID (institucional E+); tema escuro é diferencial estético "cockpit". Flip via `[data-theme="light"]` no `<html>` — JSX classNames não mudam.
+**3. Layout em 3 painéis.**
+- **Esquerdo (340px):** estado-driven — tutorial / detalhes do município / comparação X vs Y.
+- **Centro (flex):** mapa SVG nativo do Brasil com 1.938 municípios coloridos por score.
+- **Direito (400px):** agente conversacional sempre aberto.
 
-**4. Logo PID oficial obrigatória no header**
-Orientação explícita da banca: logo + nome + paleta da PID são obrigatórios. Aplicada em SVG via `<img>`, h-[68px], substituiu o radar animado custom da v1.
-
-**5. Carrossel de insights motion no header**
-Substituiu Lente/Modo. 4 strings rotativas a cada 5s com `AnimatePresence` (pattern AiPets). Pesos narrativos: ranking-derived + incentivo público + EDA empírico + caso real. Reforça narrativa "PID + IA".
+**4. Microcopy responsável (regulamento §10.13).** Toda comunicação usa "oportunidade candidata", "elegibilidade preliminar", "score de triagem", "priorizar estudo". Vocabulário "garantido", "melhor investimento", "retorno certo" é proibido em todo o produto.
 
 ### 3.2 Indicador
 
-**6. Média ponderada simples, não ML**
-Decisão deliberada vs Random Forest, GWR, TOPSIS. **Por quê:** explicabilidade radical — usuário entende a fórmula em 1 frase. Defensável em comitê de investimento.
+**5. Média ponderada simples, não ML.** Decisão deliberada vs Random Forest, GWR, TOPSIS. **Por quê:** explicabilidade radical — usuário entende a fórmula em 1 frase. Defensável em comitê de investimento.
 
-**7. data_completeness flag em vez de fillna(0)**
-Tratamento original silenciava ausência (município sem dado virava "0" — interpretado como "ótimo"). Agora `np.nanmean` ignora NaN, e cada linha tem `data_completeness` (0–1) explícito. **Honestidade metodológica vs alucinação.**
+**6. Score por fonte, não score único.** Cada município tem 5 scores (1 por fonte de geração). Cabeça de ranking é "qual fonte rende mais score nesse município".
 
-**8. Score por fonte, não score único**
-Cada município tem 5 scores (1 por fonte de geração). Cabeça de ranking é "qual fonte rende mais score nesse município".
+**7. Tratamento NaN-safe + flag `data_completeness`.** Variável ausente não vira zero — propaga como NaN, e cada linha carrega uma flag explícita (0–1) indicando que fração das variáveis tinha valor real. **Honestidade metodológica vs alucinação por silenciamento.**
 
-**9. Incentivos públicos como info-only, NUNCA score**
-REIDI/SUDENE/FNE/BNDES aparecem como badges com status (confirmado/proxy/elegibilidade preliminar). **Decisão deliberada de não somar:** somar viesaria viabilidade técnica com elegibilidade fiscal. Lado-a-lado preserva interpretabilidade.
-
-**10. Microcopy responsável obrigatório (regulamento §10.13)**
-"Oportunidade candidata", "elegibilidade preliminar", "score de triagem", "priorizar estudo". **Evitar:** "garantido", "melhor investimento", "retorno certo".
+**8. Camada de incentivos públicos como informação contextual.** REIDI, SUDENE, FNE, BNDES e correlatos aparecem como badges com status (confirmado / proxy / elegibilidade preliminar). **Decisão deliberada de não somar ao score MCDA:** somá-los introduziria viés cumulativo (município já bem ranqueado em viabilidade técnica viraria ainda mais bem ranqueado por ter incentivo). Lado-a-lado preserva interpretabilidade.
 
 ### 3.3 Backend e agente
 
-**11. FastAPI Python + parquet em RAM, sem DB**
-Volume é trivial (9.690 linhas, ~150 KB). Postgres+PostGIS é overkill agora. Lifecycle FastAPI carrega parquet uma vez na inicialização. Migração pra DB no v2.1 quando dataset crescer.
+**9. FastAPI Python + parquet em RAM.** Volume é trivial (9.690 linhas, ~150 KB). Lifecycle FastAPI carrega parquet uma vez na inicialização. Latência de query <30ms. Postgres+PostGIS entram quando o dataset crescer (registrado no design doc do backend v2).
 
-**12. Agente Gemini 3 Flash Preview**
-Modelo escolhido pelo time (já validado em outro projeto). Custom function `search_municipio` consulta o indicador; File Search nativo faz RAG sobre 5 docs internos.
+**10. Agente Gemini 3 Flash Preview com 3 capacidades.**
+- **Função custom `search_municipio`** — consulta o indicador em tempo real, retorna rankings filtrados (UF, fonte, completude).
+- **Google File Search nativo** — RAG gerenciado pelo Google sobre 5 documentos internos (decisões de arquitetura, escopo, EDA empírica, camada de incentivos, persona). Responde perguntas metodológicas com fundamento documental.
+- **Web search de convergência pública** — busca em tempo real sobre instrumentos públicos federais (REIDI, SUDENE, FNE, BNDES Climate Fund), notícias setoriais e mudanças regulatórias, com citações de fonte.
 
-**13. googleSearch dropado por incompat com fileSearch**
-Gemini 3 Flash hoje não permite combinar `googleSearch` + `fileSearch` no mesmo request. Priorizamos `fileSearch` (Q&A metodológico vale mais no pitch). Roadmap: fallback via função custom chamando Google Custom Search API.
-
-**14. Memória in-memory por session_id**
-Dict em RAM com TTL 30min, máximo 20 turnos por sessão. Sem persistência cross-session. Suficiente pra MVP; v2.1 persiste em Postgres/Redis.
+**11. Memória in-memory por session_id.** Dict em RAM com TTL 30min, máximo 20 turnos por sessão. Suficiente pra MVP; v2.1 persiste em Postgres/Redis.
 
 ### 3.4 Operacional
 
-**15. Vercel (front) + Railway (back)**
-Vercel é otimizado pra estático com edge cache; Railway pra processo Python com Docker. Free tier de ambos cobre o MVP. CORS aberto (`*`) hoje — restringido pra v2.1.
+**12. Vercel (front) + Railway (back).** Vercel é otimizado pra estático com edge cache; Railway pra processo Python com Docker. Free tier de ambos cobre o MVP. CORS aberto (`*`) hoje — restringido pra v2.1.
 
 ---
 
 ## 4. Diferenciais defensáveis (frente a benchmark)
 
-1. **Indicador MCDA real com flag explícita de qualidade** (data_completeness). Raro em plataformas comerciais.
-2. **Agente especializado em incentivos públicos brasileiros** com RAG sobre docs internos. WayCarbon/ClimateView/Climate TRACE não cruzam isso.
+1. **Indicador MCDA real com flag explícita de qualidade** (`data_completeness`). Raro em plataformas comerciais.
+2. **Agente especializado em incentivos públicos brasileiros** com RAG sobre docs internos + busca web em tempo real. WayCarbon / ClimateView / Climate TRACE não cruzam isso.
 3. **Camada de incentivos como info-only.** Decisão metodológica defensável em apresentação.
 4. **Operacional em produção, não só protótipo.** Backend e agente respondendo via API pública no fim do hackathon.
 5. **Stack 100% open-source com custo desprezível.**
@@ -103,16 +88,16 @@ Vercel é otimizado pra estático com edge cache; Railway pra processo Python co
 
 ---
 
-## 5. Limitações conhecidas (declaradas explicitamente)
+## 5. Escopo do MVP (o que fica pra v2)
 
-- **Convergência pública ainda mockada.** Esquema servido pelo back; preenchimento real REIDI/SUDENE/FNE/BNDES é roadmap.
-- **Variáveis estaduais aplicadas como municipais** (linhas/subestações/biometano por UF). Mitigação registrada em `docs/13_roadmap_indicador_v2.md`.
-- **Score social ainda é proxy.** v2 substitui por IBGE Cidades real (IDH-M, PIB pc, desemprego, % rural).
-- **Sem filtro de aptidão geográfica por fonte.** v2 inclui overlay com Atlas Eólico CEPEL + Global Solar Atlas + IBGE PAM.
-- **Min-max global sensível a outliers** (Itaipu/Belo Monte achatam). Mitigação: winsorize 5/95 ou robust scaling.
-- **Sem validação cruzada do score** contra realização (REIDI 2020-2025). Roadmap obrigatório pós-hackathon.
-- **Agente sem grounding em busca web** (constraint Gemini 3 Flash).
-- **Sem testes automatizados, sem CI, sem observability profunda.** MVP deliberado.
+- **Variáveis estaduais (transmissão, biometano agregado por UF) normalizadas intra-UF** ou movidas pra contexto, em vez de aplicadas como municipais.
+- **Filtro de aptidão geográfica por fonte** (overlay com Atlas Eólico CEPEL + Global Solar Atlas + IBGE PAM).
+- **Validação cruzada do score** contra realização (REIDI 2020-2025, FNE-Verde, SUDENE) — defensabilidade metodológica do método.
+- **Robust scaling no min-max** (winsorize 5/95) pra mitigar achatamento por outliers (Itaipu, Belo Monte).
+- **Persistência de memória do agente** cross-session (Postgres/Redis).
+- **Testes automatizados, CI, observability profunda.**
+
+Cada item está detalhado em `docs/13_roadmap_indicador_v2.md` ou `docs/14_arquitetura_backend_v2.md` com mitigação, custo e fontes de dados necessárias.
 
 ---
 
@@ -126,5 +111,5 @@ Vercel é otimizado pra estático com edge cache; Railway pra processo Python co
 | Decisões de UX/produto | `docs/12_decisoes_arquitetura_radar_pid.md` |
 | Roadmap do indicador | `docs/13_roadmap_indicador_v2.md` |
 | Design backend v2 | `docs/14_arquitetura_backend_v2.md` |
-| Specs prescritivas (já implementadas) | `docs/SPEC_*.md` |
+| Specs prescritivas | `docs/SPEC_*.md` |
 | Conteúdo p/ jurores | `equipe-464/` |
