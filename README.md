@@ -4,6 +4,16 @@ Equipe participante do **Hackathon E+ Transição Energética** (9–10 maio 202
 
 Tema: **aprimorar a Plataforma Interativa de Descarbonização (PID)** do Instituto E+, transformando dados em decisões para acelerar a transição energética do Brasil.
 
+## Integrantes
+
+| Nome | LinkedIn |
+| --- | --- |
+| Anna Beatriz Callejon | [linkedin.com/in/anna-beatriz-callejon-635135254](https://www.linkedin.com/in/anna-beatriz-callejon-635135254/) |
+| Carlos Icaro | [linkedin.com/in/carlosicaro](https://www.linkedin.com/in/carlosicaro) |
+| Camila de Freitas Silva | [linkedin.com/in/camilafreitassilva](https://www.linkedin.com/in/camilafreitassilva/) |
+| Gabriel Anderson Bastos de Souza | [linkedin.com/in/gabrielbastosdesouza](https://www.linkedin.com/in/gabrielbastosdesouza/) |
+| Victor Arduin Wecki | [linkedin.com/in/victorarduin](https://www.linkedin.com/in/victorarduin/) |
+
 ## Estrutura do repo
 
 ```
