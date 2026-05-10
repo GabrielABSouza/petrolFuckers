@@ -10,18 +10,12 @@ import {
 /**
  * Radar PID — vídeo demo de 20s (600 frames @ 30fps)
  *
- * Carrega 7 screenshots progressivos do app e faz crossfade entre eles.
- * Sobre cada cena: caption centralizada (lower-third) + cursor que anima
- * pra próximo target + (opcional) pulse no elemento que acabou de mudar.
+ * 7 screenshots progressivos com crossfade. Cursor anima sincronizado
+ * com a ação: chega ao target ANTES da troca de cena (efeito "vou clicar"),
+ * pulse de click sincronizado com o fade-in do próximo screenshot.
  *
- * Os 7 screenshots devem estar em video/public/:
- *   01-vazio.png      → app aberto sem filtros, sem cidade selecionada
- *   02-h2v.png        → H2 Verde selecionado
- *   03-mg.png         → MG selecionado no Recorte
- *   04-arapora.png    → Araporã clicado, sidebar com detalhes
- *   05-compare.png    → modo comparação ativo (só Araporã)
- *   06-janauba.png    → Janaúba também selecionado
- *   07-agente.png     → agente respondeu sobre políticas públicas
+ * Cena 7 inclui overlay com os pontos-chave da resposta do agente (com
+ * texto real da IA sobre instrumentos públicos vigentes em MG).
  */
 
 const FONT_DISPLAY = '"Fraunces", "Georgia", serif';
@@ -37,8 +31,9 @@ type Scene = {
   step?: number;
   caption: string;
   subtitle?: string;
-  // posição (em % do canvas) que o cursor mira durante essa cena
-  cursorTarget: { x: number; y: number };
+  // Posição do cursor (% canvas) que produziu a TRANSIÇÃO pra essa cena.
+  // Exemplo: cena "h2v" usa { x: 18, y: 28 } = posição do botão H2V que foi clicado.
+  triggerTarget: { x: number; y: number };
 };
 
 const SCENES: Scene[] = [
@@ -48,7 +43,7 @@ const SCENES: Scene[] = [
     duration: 60,
     caption: "Triagem de oportunidades em transição energética",
     subtitle: "1.938 municípios · 5 fontes de energia limpa",
-    cursorTarget: { x: 50, y: 50 },
+    triggerTarget: { x: 50, y: 50 },
   },
   {
     src: "02-h2v.png",
@@ -57,7 +52,7 @@ const SCENES: Scene[] = [
     step: 1,
     caption: "Filtre a fonte de energia",
     subtitle: "H2 Verde",
-    cursorTarget: { x: 18, y: 28 },
+    triggerTarget: { x: 18, y: 28 },
   },
   {
     src: "03-mg.png",
@@ -66,7 +61,7 @@ const SCENES: Scene[] = [
     step: 2,
     caption: "Recorte por estado",
     subtitle: "Minas Gerais",
-    cursorTarget: { x: 13, y: 39 },
+    triggerTarget: { x: 13, y: 39 },
   },
   {
     src: "04-arapora.png",
@@ -75,7 +70,7 @@ const SCENES: Scene[] = [
     step: 3,
     caption: "Araporã/MG · score 48",
     subtitle: "Breakdown por bloco econômico, social e ambiental",
-    cursorTarget: { x: 38, y: 53 },
+    triggerTarget: { x: 38, y: 53 },
   },
   {
     src: "05-compare.png",
@@ -84,7 +79,7 @@ const SCENES: Scene[] = [
     step: 4,
     caption: "Acione a comparação",
     subtitle: "Modo X vs Y",
-    cursorTarget: { x: 12, y: 56 },
+    triggerTarget: { x: 12, y: 56 },
   },
   {
     src: "06-janauba.png",
@@ -93,7 +88,7 @@ const SCENES: Scene[] = [
     step: 5,
     caption: "Compare com outro município",
     subtitle: "Janaúba/MG · score 47 — diferença está nos blocos",
-    cursorTarget: { x: 55, y: 36 },
+    triggerTarget: { x: 55, y: 36 },
   },
   {
     src: "07-agente.png",
@@ -102,19 +97,29 @@ const SCENES: Scene[] = [
     step: 6,
     caption: "Pergunte ao Copiloto",
     subtitle: "Instrumentos públicos para MG vigentes em maio/2026",
-    cursorTarget: { x: 88, y: 95 },
+    triggerTarget: { x: 88, y: 95 },
   },
 ];
+
+// Pontos-chave da resposta REAL da IA (ver chat com o user — políticas para MG)
+const AGENT_BULLETS: string[] = [
+  "Plano Mineiro de Biogás e Biometano — vigente",
+  "BDMG Sustentabilidade — taxas subsidiadas",
+  "ICMS Solar — Convênio 16/15 (micro/minigeração)",
+  "REIDI — suspensão PIS/COFINS p/ infra de energia",
+  "BNDES Fundo Clima · LCD (Letra de Crédito do Desenvolvimento)",
+];
+
+const AGENT_RECOMMENDATION =
+  "Recomendação: priorizar estudo de viabilidade para Biometano (eco_score 1,0) usando REIDI para desonerar CAPEX.";
 
 export const DemoVideo: React.FC = () => {
   return (
     <AbsoluteFill style={{ backgroundColor: "#020f1f", overflow: "hidden" }}>
-      {/* Stack de screenshots — cada um faz fade-in cobrindo o anterior */}
       {SCENES.map((scene, i) => (
         <ScreenshotLayer key={scene.src} scene={scene} index={i} />
       ))}
 
-      {/* Captions — montadas como Sequences pra cada cena */}
       {SCENES.map((scene, i) => (
         <Sequence
           key={`cap-${scene.src}`}
@@ -126,12 +131,18 @@ export const DemoVideo: React.FC = () => {
             title={scene.caption}
             subtitle={scene.subtitle}
             isOpening={i === 0}
+            isAgentScene={i === SCENES.length - 1}
           />
         </Sequence>
       ))}
 
-      {/* Cursor anima entre os targets */}
+      {/* Overlay especial da cena 7 — bullets da resposta da IA */}
+      <Sequence from={SCENES[6].start} durationInFrames={SCENES[6].duration}>
+        <AgentResponseOverlay />
+      </Sequence>
+
       <Cursor />
+      <ClickPulse />
     </AbsoluteFill>
   );
 };
@@ -139,12 +150,14 @@ export const DemoVideo: React.FC = () => {
 // ─────────────────────────────────────────────
 // Screenshot com crossfade
 // ─────────────────────────────────────────────
-const ScreenshotLayer: React.FC<{ scene: Scene; index: number }> = ({ scene, index }) => {
+const ScreenshotLayer: React.FC<{ scene: Scene; index: number }> = ({
+  scene,
+  index,
+}) => {
   const frame = useCurrentFrame();
-  // Fade-in cobrindo a cena anterior. A última cena nunca dá fade-out.
   const opacity =
     index === 0
-      ? 1 // primeira: visível desde o frame 0
+      ? 1
       : interpolate(
           frame,
           [scene.start, scene.start + FADE_FRAMES],
@@ -169,13 +182,17 @@ const Caption: React.FC<{
   title: string;
   subtitle?: string;
   isOpening: boolean;
-}> = ({ step, title, subtitle, isOpening }) => {
+  isAgentScene: boolean;
+}> = ({ step, title, subtitle, isOpening, isAgentScene }) => {
   const frame = useCurrentFrame();
-  // Fade-in 0–10, full 10–46, fade-out 46–60 — relativo ao Sequence.from
-  const opacity = interpolate(frame, [0, 10, 46, 60], [0, 1, 1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  // Caption da cena agente fica visível só no começo (50 frames) pra não tampar bullets
+  const fadeOutEnd = isAgentScene ? 50 : 60;
+  const opacity = interpolate(
+    frame,
+    [0, 10, fadeOutEnd - 14, fadeOutEnd],
+    [0, 1, 1, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+  );
   const ty = interpolate(frame, [0, 14], [10, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
@@ -250,26 +267,147 @@ const Caption: React.FC<{
 };
 
 // ─────────────────────────────────────────────
-// Cursor animado
+// Overlay da resposta da IA (cena 7)
 // ─────────────────────────────────────────────
+const AgentResponseOverlay: React.FC = () => {
+  const frame = useCurrentFrame();
+
+  // Bullets aparecem em cascata começando no frame 60 (depois da caption fade-out)
+  // Dura até frame 210 (fim da cena), com fade final
+  const containerOpacity = interpolate(frame, [55, 75, 200, 210], [0, 1, 1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  return (
+    <AbsoluteFill
+      style={{
+        justifyContent: "center",
+        alignItems: "center",
+        pointerEvents: "none",
+      }}
+    >
+      <div
+        style={{
+          opacity: containerOpacity,
+          maxWidth: 1180,
+          width: "70%",
+          padding: "32px 44px",
+          background: "rgba(2,15,31,0.88)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          border: "1px solid rgba(252,194,10,0.45)",
+          borderRadius: 6,
+          boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+        }}
+      >
+        <div
+          style={{
+            color: "#fcc20a",
+            fontFamily: FONT_MONO,
+            fontSize: 14,
+            letterSpacing: "0.28em",
+            textTransform: "uppercase",
+            marginBottom: 18,
+            textAlign: "center",
+          }}
+        >
+          Resposta do Copiloto · maio/2026
+        </div>
+
+        {AGENT_BULLETS.map((bullet, i) => {
+          const startFrame = 70 + i * 16;
+          const opacity = interpolate(
+            frame,
+            [startFrame, startFrame + 14],
+            [0, 1],
+            { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+          );
+          const tx = interpolate(frame, [startFrame, startFrame + 14], [-12, 0], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+          });
+          return (
+            <div
+              key={i}
+              style={{
+                opacity,
+                transform: `translateX(${tx}px)`,
+                marginBottom: 14,
+                paddingLeft: 22,
+                borderLeft: "3px solid #fcc20a",
+                color: "#f4f1ea",
+                fontFamily: FONT_SANS,
+                fontSize: 22,
+                lineHeight: 1.4,
+              }}
+            >
+              {bullet}
+            </div>
+          );
+        })}
+
+        {/* Recomendação final */}
+        <div
+          style={{
+            marginTop: 22,
+            paddingTop: 18,
+            borderTop: "1px solid rgba(252,194,10,0.35)",
+            opacity: interpolate(frame, [165, 185], [0, 1], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+            }),
+            fontFamily: FONT_DISPLAY,
+            fontStyle: "italic",
+            fontSize: 22,
+            color: "#fcc20a",
+            textAlign: "center",
+            lineHeight: 1.35,
+          }}
+        >
+          {AGENT_RECOMMENDATION}
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// ─────────────────────────────────────────────
+// Cursor sincronizado com cada ação
+// ─────────────────────────────────────────────
+//
+// Lógica de timing:
+// - Pra cena N, o cursor PRECISA estar em scene[N].triggerTarget no momento
+//   exato em que o screenshot N aparece (frame scene[N].start).
+// - Movimento entre targets ocorre durante o FINAL da cena anterior — cursor
+//   chega ao próximo target uns 5 frames antes do fade-in começar.
 const Cursor: React.FC = () => {
   const frame = useCurrentFrame();
-  // Cada cena define um target. Cursor interpola linearmente entre eles
-  // chegando ao target no MEIO da cena (efeito "movendo até clicar").
-  const keyframes: { frame: number; x: number; y: number }[] = SCENES.map(
-    (s) => ({
-      frame: s.start + Math.floor(s.duration * 0.5),
-      x: s.cursorTarget.x,
-      y: s.cursorTarget.y,
-    })
-  );
-  // Garante que o cursor inicie no frame 0 com a posição da primeira cena
-  const allFrames = [0, ...keyframes.map((k) => k.frame), 600];
-  const xs = [keyframes[0].x, ...keyframes.map((k) => k.x), keyframes[keyframes.length - 1].x];
-  const ys = [keyframes[0].y, ...keyframes.map((k) => k.y), keyframes[keyframes.length - 1].y];
 
-  const x = interpolate(frame, allFrames, xs);
-  const y = interpolate(frame, allFrames, ys);
+  // Keyframes: cursor está em SCENES[i].triggerTarget no frame SCENES[i].start
+  // Antes disso, está movendo do target anterior pro target atual.
+  const keyframes = SCENES.map((scene) => ({
+    frame: scene.start,
+    x: scene.triggerTarget.x,
+    y: scene.triggerTarget.y,
+  }));
+  // Mantém posição final até o fim
+  keyframes.push({
+    frame: 600,
+    x: SCENES[SCENES.length - 1].triggerTarget.x,
+    y: SCENES[SCENES.length - 1].triggerTarget.y,
+  });
+
+  const x = interpolate(
+    frame,
+    keyframes.map((k) => k.frame),
+    keyframes.map((k) => k.x)
+  );
+  const y = interpolate(
+    frame,
+    keyframes.map((k) => k.frame),
+    keyframes.map((k) => k.y)
+  );
 
   return (
     <svg
@@ -293,5 +431,42 @@ const Cursor: React.FC = () => {
         strokeLinejoin="round"
       />
     </svg>
+  );
+};
+
+// ─────────────────────────────────────────────
+// Pulse de click — anel se expande no momento da troca de cena
+// ─────────────────────────────────────────────
+const ClickPulse: React.FC = () => {
+  const frame = useCurrentFrame();
+  // Pulse ativo nos primeiros 18 frames de cada cena (exceto a 1ª).
+  // Encontra a cena ativa e calcula tempo desde o início dela.
+  const activeScene = SCENES.find(
+    (s, i) => i > 0 && frame >= s.start && frame < s.start + 18
+  );
+  if (!activeScene) return null;
+
+  const t = frame - activeScene.start;
+  const scale = interpolate(t, [0, 18], [0.4, 2.4]);
+  const opacity = interpolate(t, [0, 18], [0.85, 0]);
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: `${activeScene.triggerTarget.x}%`,
+        top: `${activeScene.triggerTarget.y}%`,
+        width: 64,
+        height: 64,
+        marginLeft: -32,
+        marginTop: -32,
+        borderRadius: "50%",
+        border: "3px solid #fcc20a",
+        transform: `scale(${scale})`,
+        opacity,
+        pointerEvents: "none",
+        boxShadow: "0 0 24px rgba(252,194,10,0.8)",
+      }}
+    />
   );
 };
