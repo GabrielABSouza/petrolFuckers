@@ -6,7 +6,13 @@
 
 ## 1. Qual é o tipo de solução criada? (Website, aplicativo, SaaS, bot, etc.)
 
-**R:** Website — aplicação web single-page (SPA), client-side, sem backend. É um protótipo navegacional do **Radar PID**, uma camada de inteligência sobre a Plataforma Interativa de Descarbonização (PID) do Instituto E+. Roda 100% no navegador, não requer login, não armazena dados pessoais. Faz o build em ~1 segundo e pode ser hospedada em qualquer plataforma estática (Vercel, Netlify, Hugging Face Spaces). A arquitetura escolhida (sem backend, sem autenticação, sem banco de dados) é deliberada para a v0.1: maximiza velocidade de iteração no hackathon, elimina superfície de ataque, e é trivial fazer evoluir para SaaS quando a base de dados real (5.570 municípios) substituir o mock atual de 12 municípios.
+**R:** Solução fullstack composta por:
+
+- **Front-end** — aplicação web single-page (SPA) em React, hospedável em qualquer plataforma estática (Vercel, Netlify, Cloudflare Pages). Não requer login, não armazena dados pessoais.
+- **Back-end** — API REST em Python/FastAPI hospedada no Railway (Docker), servindo o indicador real (1.938 municípios × 5 fontes) carregado em memória a partir de arquivos parquet. Cinco endpoints públicos: `/health`, `/municipios`, `/municipios/{nome}`, `/ranking`, `/insights`, `/agente/chat`.
+- **Agente conversacional** — Gemini 3 Flash Preview integrado via Google `genai` SDK, com duas capacidades: função custom `search_municipio` (consulta a base interna em tempo real) e File Search nativo (RAG gerenciado pelo Google sobre os documentos internos do projeto). Memória dentro da sessão (TTL 30 minutos, máximo 20 turnos).
+
+A arquitetura escolhida (SPA + API + agente) é deliberada para a v2: o front continua barato e cacheável em CDN, o back centraliza a lógica de filtragem do indicador, e o agente plugando-se no back tem acesso à base como ferramenta — sem expor a chave Gemini ao navegador.
 
 ---
 
@@ -14,35 +20,48 @@
 
 **R:** A solução foi desenvolvida em código próprio, sem plataformas Low-Code ou No-Code. Stack:
 
-**Linguagens.** JavaScript ES2022 (módulos ESM nativos), JSX (sintaxe React), CSS (com diretivas Tailwind), HTML5.
+### Front-end (`web/`)
+- **JavaScript ES2022** (módulos ESM), JSX, CSS, HTML5.
+- **React 18.3.1** + **Vite 5.4.11** (`@vitejs/plugin-react`) — UI declarativa + build tool com HMR instantâneo.
+- **Tailwind CSS 3.4.15** + PostCSS + Autoprefixer — estilização via classes utilitárias com tema customizado em `tailwind.config.js`. Tokens semânticos com `rgb(var(--xxx) / <alpha-value>)` para suportar flip dark↔light via `[data-theme="light"]` no `<html>`, sem mudar uma única classe JSX.
+- **Motion 11.11.0** (rebrand do Framer Motion) — animações declarativas e `AnimatePresence` para o carrossel de insights no header.
+- **d3-geo 3.1.1** + **topojson-client 3.1.0** — projeção Mercator (`geoMercator().fitExtent`) e renderização SVG da silhueta dos 27 estados (GeoJSON IBGE simplificado de 3.4MB para 226KB).
+- **lucide-react 0.460.0** — biblioteca tree-shakable de ícones monoline.
+- **Tipografia (Google Fonts)** — Fraunces (display serif), Geist (sans), JetBrains Mono.
 
-**Framework principal.**
-- **React 18.3.1** — biblioteca de UI declarativa, escolhida pela familiaridade da equipe e pelo ecossistema maduro.
-- **Vite 5.4.11** com `@vitejs/plugin-react` — build tool e dev server. Foi preferido a Next.js (overkill para client-only) e a Create React App (deprecado). HMR instantâneo, dev server abre em <200ms.
+### Back-end (`api/`)
+- **Python 3.11** + **FastAPI 0.111** + **uvicorn 0.30** — framework REST assíncrono e servidor ASGI.
+- **pandas 2.2** + **pyarrow 16** — leitura e manipulação dos parquets do indicador (carga em memória ao iniciar, ~150KB).
+- **Pydantic v2** — validação de schemas de entrada/saída.
+- **google-genai 2.0** — SDK oficial do Google para Gemini API e Google File Search.
+- **python-dotenv** — carregamento de variáveis de ambiente em desenvolvimento.
 
-**Estilização.**
-- **Tailwind CSS 3.4.15** com tema customizado em `tailwind.config.js` (paleta navy + amber alinhada com a PID original, tipografia Fraunces + Geist + JetBrains Mono).
-- **PostCSS 8.4.49 + Autoprefixer 10.4.20** — pipeline de CSS.
-- CSS adicional em `index.css` para texturas (grain noise SVG, scan-lines, topo-dots) e sliders customizados.
+### Inteligência artificial
+- **Gemini 3 Flash Preview** — modelo conversacional para o agente Copiloto. Temperature 0.4. Configurado com `tool_config.include_server_side_tool_invocations=True` para combinar function declarations custom com tools nativas.
+- **Google File Search** — RAG gerenciado nativo. Cinco documentos internos indexados (decisões de arquitetura, escopo estratégico, EDA empírica, camada de incentivos, persona).
 
-**Animação.**
-- **Motion 11.11.0** (rebrand do Framer Motion) — animações declarativas e `AnimatePresence` para transições de mount/unmount. Uso restrito a barras animadas no breakdown, modal fade-in e briefing fade-up no copiloto.
+### Pipeline de dados (offline)
+- **Jupyter Notebook** + pandas + numpy + unidecode + rapidfuzz — geração do indicador (snapshot mensal) consolidando ANEEL SIGA + ANP Biometano + ANEEL SIGET. Output em três arquivos parquet com `data_completeness` por linha.
 
-**Geoespacial.**
-- **d3-geo 3.1.1** — projeção Mercator (`geoMercator().fitExtent`) e gerador de paths SVG (`geoPath`).
-- **topojson-client 3.1.0** — descompressão do GeoJSON dos 27 estados brasileiros em runtime.
-- **topojson-server 3.0.1 + topojson-simplify 3.0.3** (build-time) — simplificação que reduziu o GeoJSON oficial do IBGE de 3.4MB para 226KB sem perda visível na escala do produto.
+### Infraestrutura
+- **Docker** (multi-stage build) + **Railway** (deploy automático via Git push, healthcheck em `/health`).
+- **GitHub** — repositório público (https://github.com/GabrielABSouza/petrolFuckers).
+- **Plataforma de hospedagem do front** — qualquer CDN estática (Vercel, Netlify, Cloudflare Pages).
 
-**Ícones.**
-- **lucide-react 0.460.0** — biblioteca tree-shakable de ícones monoline (estilo coerente com o tema institucional). 14 ícones em uso.
+### Variáveis de ambiente em produção (Railway)
+| Variável | Valor |
+|---|---|
+| `GEMINI_API_KEY` | chave do Google AI Studio |
+| `GEMINI_MODEL` | `gemini-3-flash-preview` |
+| `GEMINI_FILE_SEARCH_STORE_ID` | identificador do store do File Search com os 5 docs |
 
-**Tipografia (CDN).** Google Fonts variáveis: Fraunces (display serif, eixos opsz e SOFT), Geist (sans), JetBrains Mono (números e códigos).
+### Linguagens secundárias
+Markdown para toda a documentação interna em `docs/`. SQL planejado para a v2.1 (Postgres + PostGIS) — registrado em `docs/14_arquitetura_backend_v2.md` como design de longo prazo.
 
-**Linguagens secundárias do projeto** (não rodam no produto final, mas usadas em pesquisa/dados): Python para análise exploratória de dados (pandas), Markdown para toda a documentação interna em `docs/`.
-
-**Por que não TypeScript.** Decisão deliberada: em hackathon de 37h, fricção de tipagem ultrapassa o ganho de segurança em um protótipo de 750 linhas. Migração para TypeScript é um próximo passo trivial quando o produto sair do mock.
-
-**Bundle final.** ~566KB JS / 139KB gzip. A maior parcela vem do GeoJSON (226KB) e d3-geo (~80KB). Aceitável para v0.1; otimização via code-split do mapa é o próximo passo.
+### Bundle e custo
+- Front: ~566 KB JS / 139 KB gzip.
+- Back: imagem Docker ~250 MB (Python slim + deps), parquet de 150 KB carregado em RAM.
+- Custo mensal estimado em produção: R$ 30–60 (Railway tier hobby + Gemini API com prompt caching).
 
 ---
 
@@ -54,54 +73,75 @@
 
 O Radar PID é indicado para dois momentos de decisão:
 
-**Como investidor industrial** — quando você precisa fazer triagem inicial de localizações no Brasil para um projeto de capital intensivo em transição energética: planta de hidrogênio verde, fertilizantes verdes, aço verde, biometano industrial, data center sustentável, parque solar/eólico de larga escala. Em vez de gastar 4–6 meses em due diligence locacional dispersa em fontes diferentes, você usa o Radar para identificar em segundos os top-N candidatos por critério ponderado, com instrumentos públicos aplicáveis já elencados.
+**Como investidor industrial** — quando você precisa fazer triagem inicial de localizações no Brasil para um projeto de capital intensivo em transição energética: planta de hidrogênio verde, fertilizantes verdes, aço verde, biometano industrial, data center sustentável, parque solar/eólico de larga escala. Em vez de gastar 4–6 meses em due diligence locacional dispersa em fontes diferentes, você usa o Radar para identificar em segundos os top-N candidatos, com instrumentos públicos aplicáveis já elencados, e converse com o agente sobre quaisquer dúvidas metodológicas em linguagem natural.
 
 **Como gestor público** (estadual, federal, secretaria de desenvolvimento econômico) — quando você precisa priorizar onde aplicar política industrial verde, atrair capital privado, ou desenhar editais e PPPs. O Radar mostra municípios que combinam alto potencial técnico com baixa dinâmica econômica — exatamente os que mais se beneficiariam de transferências federais e instrumentos regionais.
 
 ### Como acessar
 
-Versão de demonstração: link público hospedado em plataforma estática (a ser anunciado no pitch). Não requer login, instalação ou configuração. Requisitos: navegador moderno (Chrome, Firefox, Safari, Edge — últimas duas versões) em laptop/desktop. Não há versão mobile na v0.1 — o produto é executivo, lido em tela ampla.
+- **Versão pública** — link a ser anunciado no pitch (front em CDN + API no Railway).
+- Não requer login, instalação ou configuração.
+- Requisitos: navegador moderno (Chrome, Firefox, Safari, Edge — últimas duas versões) em laptop/desktop. A v2 não tem versão mobile — o produto é executivo, lido em tela ampla.
 
 Para rodar localmente:
 ```
-git clone <repo>
+git clone https://github.com/GabrielABSouza/petrolFuckers.git
+cd petrolFuckers
+
+# Backend (terminal 1)
+cd api
+python -m venv .venv && source .venv/bin/activate
+pip install -e .
+cp .env.example .env  # preencher GEMINI_API_KEY e STORE_ID
+uvicorn src.main:app --port 8000
+
+# Frontend (terminal 2)
 cd web
 npm install
 npm run dev
 # abrir http://localhost:5173
 ```
 
-### Fluxo de uso (≈3 minutos)
+### Fluxo de uso
 
-1. **Selecione a Lente.** No header, escolha entre **Investidor** ou **Órgão público**. Isso muda o tom do Copiloto e a ênfase de microcopy do produto.
+1. **Acesse a aplicação.** Header com logo PID, carrossel de insights rotativos (4 strings com sinalizações de ranking, incentivos, dados ociosos e casos demonstrativos), botão de tema (claro/escuro) e modal de Metodologia.
 
-2. **Selecione o Modo.** No header, escolha entre **Renováveis gerais**, **Data centers IA** ou **Neoindustrialização verde**. Isso aplica um pre-set de pesos aos 6 critérios do MCDA.
+2. **Explore o mapa do Brasil.** A coluna central renderiza 1.938 municípios em SVG nativo, com tamanho e cor codificando o score MCDA atual. Hover destaca; clique seleciona.
 
-3. **Explore o mapa.** A coluna central mostra o mapa do Brasil com pontos por município. Cor e tamanho do ponto codificam o score atual. Estados aparecem como silhuetas para referência geográfica.
+3. **Inspecione um município.** A sidebar esquerda preenche com:
+   - Score final 0–1 e breakdown por bloco (econômico, social, ambiental).
+   - Flag de `data_completeness` (qualidade do dado para aquela linha).
+   - Score de cada uma das 5 fontes (Solar, Eólica, Biometano, H2 Verde, Biomassa) e o rank dentro do município.
+   - Convergência pública: badges agrupadas em 5 categorias (fiscal, financiamento, leilão, obra, política), com microcopy de status (confirmado / proxy / elegibilidade preliminar). Esta camada é informação contextual, **não compõe o score**.
+   - Observações narrativas e dados rastreados às fontes oficiais.
 
-4. **Inspecione um município.** Clique em qualquer ponto. A sidebar esquerda preenche com:
-   - Score final 0–100 e breakdown por critério (6 barras horizontais).
-   - Convergência pública (score isolado + badges dos instrumentos aplicáveis agrupadas em 5 categorias: fiscal, financiamento, leilão, obra, política).
-   - Observações narrativas e dados rastreados às fontes.
+4. **Compare dois municípios.** Clique no botão de comparação ao lado de um município, depois selecione um segundo no mapa. A sidebar inteira vira o modo "X vs Y" com confronto por critério em barras espelhadas, instrumentos comuns vs exclusivos, e crosshair pontilhado no mapa para o segundo município.
 
-5. **Compare dois municípios.** Clique no botão de comparação ao lado de um município, depois selecione um segundo no mapa. A sidebar inteira vira o modo "X vs Y" com confronto por critério em barras espelhadas, instrumentos comuns vs exclusivos, e crosshair pontilhado no mapa para o segundo município.
+5. **Converse com o Copiloto.** A sidebar direita está sempre aberta com um agente conversacional Gemini 3 Flash. Ele tem duas capacidades:
+   - **Consulta à base interna** (`search_municipio`) — pergunte coisas como "top 5 H2 Verde em PA", "qual o ranking Solar no NE", "Pecém detalhado".
+   - **Q&A metodológico** (File Search sobre 5 docs internos) — pergunte "como o score é calculado", "por que essa fórmula", "quais limitações", "o que é a camada de convergência pública".
 
-6. **Converse com o Copiloto.** A sidebar direita está sempre aberta com o agente conversacional. Ele lê o contexto da aplicação (lente, modo, município, comparação) e oferece briefing automático ao selecionar um município, além de 6 sugestões focadas em incentivos públicos. Toda resposta diferencia explicitamente dado confirmado, proxy, elegibilidade preliminar e próxima validação.
+   A memória da sessão preserva contexto entre turnos: depois de "top 3 Solar", você pode dizer "e em PA?" e o agente entende a referência. TTL de 30 minutos por sessão.
 
-7. **Consulte a metodologia.** Botão "ⓘ Metodologia" no canto direito do header. Modal compacto com fórmula MCDA, tabela dinâmica de pesos do modo atual e lista de fontes conectadas vs próximas a integrar.
+6. **Toggle tema dark/light.** Botão no canto direito do header. Persistido em `localStorage`. O tema escuro é institucional (cockpit), o claro é alinhado ao site público da PID.
+
+7. **Consulte a metodologia.** Botão "Metodologia" no header abre modal com fórmula MCDA (0,40 econômico + 0,30 social + 0,30 ambiental), tabela de blocos por critério e lista de fontes conectadas vs próximas a integrar.
 
 ### Estados do produto
 
 - **Sem seleção (default)** — sidebar esquerda mostra tutorial de 3 passos numerados, legenda do mapa e top 3 atual clicável.
-- **Município selecionado** — sidebar esquerda em modo `MunicipioCompacto`.
-- **Comparação ativa** — sidebar esquerda em modo `CompareView`, crosshair pontilhado ember no mapa para o segundo município.
+- **Município selecionado** — sidebar esquerda em modo `MunicipioCompacto` com features + scores + instrumentos.
+- **Comparação ativa** — sidebar esquerda em modo `CompareView`, crosshair pontilhado no mapa para o segundo município.
 
-### Limitações conhecidas (v0.1)
+### Limitações conhecidas (v2.0)
 
-- 12 municípios mockados (Pecém, Camaçari, Janaúba, Lucas do Rio Verde e mais 8). Versão completa com 5.570 reais via integração ANEEL + IBGE + SAFMaps.
-- Convergência pública aparece como score isolado, não somado no MCDA — decisão deliberada para preservar separação entre viabilidade técnica e elegibilidade fiscal.
-- Sem export de relatório em PDF/CSV. Sem persistência de estado em URL. Sem zoom/pan no mapa. Sem responsivo mobile. Tudo está em backlog priorizado.
+- **Convergência pública ainda mockada.** O backend serve a estrutura; preenchimento real (REIDI, SUDENE, FNE, BNDES) está no roadmap pós-hackathon.
+- **Variáveis estaduais aplicadas como municipais.** Linhas/subestações de transmissão são por UF. Próxima versão normaliza intra-UF.
+- **Score social ainda é proxy.** Roadmap v2 substitui por dados reais do IBGE Cidades (IDH-M, PIB pc, desemprego, % rural).
+- **Sem filtro de aptidão geográfica.** Score solar/eólico/biomassa em município sem aptidão geográfica é candidato à exclusão na v2 (overlay com Atlas Eólico CEPEL + Global Solar Atlas + IBGE PAM).
+- **Agente sem grounding em busca web.** Gemini 3 Flash hoje não permite combinar `googleSearch` + `fileSearch` no mesmo request. Priorizamos fileSearch (Q&A metodológico). Roadmap pós-pitch: fallback via função custom chamando Google Custom Search API ou RSS oficial.
+- **Sem export de relatório em PDF/CSV. Sem persistência de estado em URL. Sem zoom/pan no mapa. Sem responsivo mobile.** Tudo está em backlog priorizado.
 
 ### Aviso metodológico (visível no produto)
 
-Todas as recomendações usam linguagem de **triagem**: "elegibilidade preliminar", "candidato a investimento", "próxima validação". O Radar PID **não substitui due diligence completa nem parecer jurídico** — encaminha pra ela com mais foco e menos tempo desperdiçado.
+Todas as recomendações usam linguagem de **triagem**: "elegibilidade preliminar", "oportunidade candidata", "score de triagem", "priorizar estudo". O Radar PID **não substitui due diligence completa nem parecer técnico, jurídico ou financeiro** — encaminha pra ela com mais foco e menos tempo desperdiçado (regulamento §10.13).
