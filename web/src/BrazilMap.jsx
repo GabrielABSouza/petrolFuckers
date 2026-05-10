@@ -1,14 +1,51 @@
 import React, { useMemo, useRef, useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { geoMercator, geoPath } from "d3-geo";
+import { geoContains, geoMercator, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import topoData from "./brazil_topo.json";
-import { corDoScore } from "./scoring";
 
 // Pré-extrai a feature collection uma única vez
 const BR_FEATURES = feature(topoData, topoData.objects.states);
+const UF_NAME_BY_CODE = {
+  AC: "Acre",
+  AL: "Alagoas",
+  AM: "Amazonas",
+  AP: "Amapá",
+  BA: "Bahia",
+  CE: "Ceará",
+  DF: "Distrito Federal",
+  ES: "Espírito Santo",
+  GO: "Goiás",
+  MA: "Maranhão",
+  MG: "Minas Gerais",
+  MS: "Mato Grosso do Sul",
+  MT: "Mato Grosso",
+  PA: "Pará",
+  PB: "Paraíba",
+  PE: "Pernambuco",
+  PI: "Piauí",
+  PR: "Paraná",
+  RJ: "Rio de Janeiro",
+  RN: "Rio Grande do Norte",
+  RO: "Rondônia",
+  RR: "Roraima",
+  RS: "Rio Grande do Sul",
+  SC: "Santa Catarina",
+  SE: "Sergipe",
+  SP: "São Paulo",
+  TO: "Tocantins",
+};
 
-export default function BrazilMap({ municipios, scores, selectedId, compareId, onSelect, modo }) {
+export default function BrazilMap({
+  municipios,
+  scores,
+  selectedId,
+  compareId,
+  onSelect,
+  fonte,
+  ufAtiva = "BR",
+  datasetStatus,
+}) {
   const containerRef = useRef(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
 
@@ -22,35 +59,65 @@ export default function BrazilMap({ municipios, scores, selectedId, compareId, o
     return () => ro.disconnect();
   }, []);
 
+  const focusFeatures = useMemo(() => {
+    const ufName = UF_NAME_BY_CODE[ufAtiva];
+    if (!ufName) return BR_FEATURES.features;
+    const filtered = BR_FEATURES.features.filter((f) => f.properties?.uf === ufName);
+    return filtered.length ? filtered : BR_FEATURES.features;
+  }, [ufAtiva]);
+
+  const focusCollection = useMemo(
+    () => ({ type: "FeatureCollection", features: focusFeatures }),
+    [focusFeatures]
+  );
+
   // Projeção encaixada nas dimensões do container
   const { projection, pathFn } = useMemo(() => {
     const proj = geoMercator().fitExtent(
       [
-        [size.w * 0.06, size.h * 0.06],
-        [size.w * 0.94, size.h * 0.94],
+        [size.w * 0.07, size.h * 0.07],
+        [size.w * 0.93, size.h * 0.93],
       ],
-      BR_FEATURES
+      focusCollection
     );
     return { projection: proj, pathFn: geoPath(proj) };
-  }, [size]);
+  }, [focusCollection, size]);
 
   // Pontos projetados a partir de lat/lng
   const points = useMemo(() => {
-    return municipios.map((m) => {
-      const xy = projection([m.lng, m.lat]);
-      return { ...m, x: xy?.[0] ?? 0, y: xy?.[1] ?? 0 };
-    });
-  }, [municipios, projection]);
+    return municipios
+      .filter((m) => isValidBrazilCoord(m.lat, m.lng))
+      .filter((m) => geoContains(focusCollection, [m.lng, m.lat]))
+      .map((m) => {
+        const xy = projection([m.lng, m.lat]);
+        return { ...m, x: xy?.[0] ?? 0, y: xy?.[1] ?? 0 };
+      })
+      .filter((m) => Number.isFinite(m.x) && Number.isFinite(m.y));
+  }, [focusCollection, municipios, projection]);
 
   // Top 3 dos scores
   const top3Set = useMemo(() => {
-    const list = [...municipios]
+    const list = [...points]
       .map((m) => ({ id: m.id, score: scores[m.id]?.final ?? 0 }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 3)
       .map((x) => x.id);
     return new Set(list);
-  }, [municipios, scores]);
+  }, [points, scores]);
+
+  const medianScore = useMemo(() => {
+    const values = points
+      .map((m) => scores[m.id]?.final)
+      .filter((v) => Number.isFinite(v))
+      .sort((a, b) => a - b);
+    if (!values.length) return 0;
+    return values[Math.floor(values.length / 2)];
+  }, [points, scores]);
+
+  const highlightPoints = useMemo(
+    () => points.filter((p) => p.id === selectedId || p.id === compareId),
+    [compareId, points, selectedId]
+  );
 
   return (
     <div
@@ -65,8 +132,11 @@ export default function BrazilMap({ municipios, scores, selectedId, compareId, o
           </div>
           <div className="h-px w-16 bg-hairline-strong/60" />
           <div className="text-[10px] tabular tracking-[0.18em] uppercase text-amber/70 font-mono">
-            n={municipios.length}
+            n={points.length}
           </div>
+        </div>
+        <div className="text-[10px] tabular tracking-[0.18em] uppercase text-paper/45 font-mono">
+          Fonte · {fonte?.short || "energia"}{ufAtiva !== "BR" ? ` · ${ufAtiva}` : ""}
         </div>
       </div>
 
@@ -77,9 +147,11 @@ export default function BrazilMap({ municipios, scores, selectedId, compareId, o
           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber" />
         </span>
         <span className="text-[10px] tabular tracking-[0.18em] uppercase text-paper/55 font-mono">
-          Score recalculado · {Object.keys(scores).length} municípios
+          Score por fonte · {datasetStatus === "api" ? "API" : "fallback local"}
         </span>
       </div>
+
+      <MapLegend />
 
       <div className="absolute bottom-5 right-4 text-right pointer-events-none z-10">
         <div className="text-[10px] tabular tracking-[0.14em] text-paper/40 font-mono">
@@ -126,7 +198,7 @@ export default function BrazilMap({ municipios, scores, selectedId, compareId, o
 
         {/* Estados com fill hatch */}
         <g>
-          {BR_FEATURES.features.map((f, i) => (
+          {focusFeatures.map((f, i) => (
             <path
               key={f.properties?.uf || i}
               d={pathFn(f)}
@@ -140,7 +212,7 @@ export default function BrazilMap({ municipios, scores, selectedId, compareId, o
 
         {/* Contorno mais visível */}
         <g style={{ pointerEvents: "none" }}>
-          {BR_FEATURES.features.map((f, i) => (
+          {focusFeatures.map((f, i) => (
             <path
               key={`outline-${i}`}
               d={pathFn(f)}
@@ -156,13 +228,12 @@ export default function BrazilMap({ municipios, scores, selectedId, compareId, o
         {/* Pontos dos municípios */}
         <g>
           {points.map((p) => {
-            const score = scores[p.id]?.final ?? 0;
-            const isSel = selectedId === p.id;
-            const isCmp = compareId === p.id;
+            const scoreObj = scores[p.id] ?? {};
+            const score = scoreObj.final ?? 0;
             const isTop = top3Set.has(p.id);
-            const radius = 4 + (score / 100) * 8;
-            const fill = corDoScore(score);
-            const crosshairColor = isSel ? "var(--amber)" : isCmp ? "#fc6926" : null;
+            const radius = datasetStatus === "api" ? 1.8 + (score / 100) * 5.5 : 4 + (score / 100) * 8;
+            const fill = corDoPonto(scoreObj, medianScore);
+            const fillOpacity = isTop ? 0.95 : scoreObj.completeness < 60 ? 0.18 : 0.34;
 
             return (
               <g
@@ -186,62 +257,21 @@ export default function BrazilMap({ municipios, scores, selectedId, compareId, o
                   />
                 )}
 
-                {crosshairColor && (
-                  <>
-                    <line
-                      x1={p.x - 22}
-                      y1={p.y}
-                      x2={p.x - radius - 4}
-                      y2={p.y}
-                      stroke={crosshairColor}
-                      strokeWidth="1"
-                      strokeDasharray={isCmp ? "2 2" : "0"}
-                    />
-                    <line
-                      x1={p.x + radius + 4}
-                      y1={p.y}
-                      x2={p.x + 22}
-                      y2={p.y}
-                      stroke={crosshairColor}
-                      strokeWidth="1"
-                      strokeDasharray={isCmp ? "2 2" : "0"}
-                    />
-                    <line
-                      x1={p.x}
-                      y1={p.y - 22}
-                      x2={p.x}
-                      y2={p.y - radius - 4}
-                      stroke={crosshairColor}
-                      strokeWidth="1"
-                      strokeDasharray={isCmp ? "2 2" : "0"}
-                    />
-                    <line
-                      x1={p.x}
-                      y1={p.y + radius + 4}
-                      x2={p.x}
-                      y2={p.y + 22}
-                      stroke={crosshairColor}
-                      strokeWidth="1"
-                      strokeDasharray={isCmp ? "2 2" : "0"}
-                    />
-                  </>
-                )}
-
                 <circle
                   cx={p.x}
                   cy={p.y}
                   r={radius + 2}
                   fill="none"
                   stroke={fill}
-                  strokeWidth="0.7"
-                  strokeOpacity={isSel || isCmp ? 1 : 0.5}
+                  strokeWidth="0.8"
+                  strokeOpacity={isTop ? 0.95 : 0.48}
                 />
                 <motion.circle
                   cx={p.x}
                   cy={p.y}
                   r={radius}
                   fill={fill}
-                  fillOpacity={isSel ? 1 : 0.85}
+                  fillOpacity={fillOpacity}
                   whileHover={{ scale: 1.3 }}
                   style={{
                     filter: isTop ? `drop-shadow(0 0 5px ${fill})` : "none",
@@ -259,24 +289,90 @@ export default function BrazilMap({ municipios, scores, selectedId, compareId, o
                     {score}
                   </text>
                 )}
-                {(isSel || isCmp) && (
-                  <text
-                    x={p.x}
-                    y={p.y - radius - 12}
-                    fontSize="11"
-                    fontFamily="'Geist', sans-serif"
-                    textAnchor="middle"
-                    fill={isSel ? "var(--paper)" : "#fc6926"}
-                    fontWeight="500"
-                  >
-                    {p.apelido || p.municipio}/{p.uf}
-                  </text>
-                )}
+              </g>
+            );
+          })}
+        </g>
+
+        {/* Seleção sempre por cima dos pontos densos */}
+        <g pointerEvents="none">
+          {highlightPoints.map((p) => {
+            const isSel = selectedId === p.id;
+            const score = scores[p.id]?.final ?? 0;
+            const radius = 7 + (score / 100) * 4;
+            const color = isSel ? "var(--amber)" : "#fc6926";
+            return (
+              <g key={`highlight-${p.id}`}>
+                <circle cx={p.x} cy={p.y} r={radius + 12} fill="rgba(2,15,31,0.72)" />
+                <circle cx={p.x} cy={p.y} r={radius + 8} fill="none" stroke={color} strokeWidth="1" strokeOpacity="0.45" />
+                <circle cx={p.x} cy={p.y} r={radius} fill={color} fillOpacity="0.95" stroke="var(--ink-deepest)" strokeWidth="2" />
+                <line x1={p.x - 24} y1={p.y} x2={p.x - radius - 6} y2={p.y} stroke={color} strokeWidth="1" strokeDasharray={isSel ? "0" : "2 2"} />
+                <line x1={p.x + radius + 6} y1={p.y} x2={p.x + 24} y2={p.y} stroke={color} strokeWidth="1" strokeDasharray={isSel ? "0" : "2 2"} />
+                <line x1={p.x} y1={p.y - 24} x2={p.x} y2={p.y - radius - 6} stroke={color} strokeWidth="1" strokeDasharray={isSel ? "0" : "2 2"} />
+                <line x1={p.x} y1={p.y + radius + 6} x2={p.x} y2={p.y + 24} stroke={color} strokeWidth="1" strokeDasharray={isSel ? "0" : "2 2"} />
+                <text
+                  x={p.x}
+                  y={p.y - radius - 16}
+                  fontSize="12"
+                  fontFamily="'Geist', sans-serif"
+                  textAnchor="middle"
+                  fill="var(--paper)"
+                  fontWeight="600"
+                  stroke="rgba(2,15,31,0.9)"
+                  strokeWidth="3"
+                  paintOrder="stroke"
+                >
+                  {p.apelido || p.municipio}/{p.uf}
+                </text>
               </g>
             );
           })}
         </g>
       </svg>
+    </div>
+  );
+}
+
+function isValidBrazilCoord(lat, lng) {
+  return (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= -34.5 &&
+    lat <= 6 &&
+    lng >= -75 &&
+    lng <= -32
+  );
+}
+
+function corDoPonto(score, medianScore) {
+  if ((score.completeness ?? 100) < 60) return "rgba(244, 241, 234, 0.42)";
+  if ((score.rankPosition ?? 9999) <= 3) return "var(--amber)";
+  if ((score.final ?? 0) >= medianScore) return "#fc6926";
+  if ((score.final ?? 0) >= medianScore * 0.75) return "#fa441a";
+  return "rgba(244, 241, 234, 0.36)";
+}
+
+function MapLegend() {
+  return (
+    <div className="absolute bottom-12 right-4 z-10 pointer-events-none border border-hairline-strong bg-ink-deepest/72 backdrop-blur px-3 py-2.5">
+      <div className="text-[9px] tabular tracking-[0.2em] uppercase text-amber font-mono mb-2">
+        Legenda
+      </div>
+      <div className="space-y-1.5 text-[10.5px] text-paper/65">
+        <LegendDot color="var(--amber)" label="Top 3 da fonte" />
+        <LegendDot color="#fc6926" label="Acima da mediana" />
+        <LegendDot color="#fa441a" label="Triagem intermediária" />
+        <LegendDot color="rgba(244, 241, 234, 0.42)" label="Dados parciais" />
+      </div>
+    </div>
+  );
+}
+
+function LegendDot({ color, label }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="block h-2 w-2 rounded-full" style={{ background: color }} />
+      <span>{label}</span>
     </div>
   );
 }

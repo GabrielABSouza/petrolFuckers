@@ -1,17 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
 import { ArrowUp, Sparkles } from "lucide-react";
-
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
-
-const SUGESTOES = [
-  "Quais incentivos públicos podem se aplicar?",
-  "Isso é elegibilidade confirmada ou triagem?",
-  "Por que este município foi recomendado?",
-  "Compare os top 3 para data centers de IA",
-  "Quais gargalos preciso destravar?",
-  "Quais dados ainda são mockados?",
-];
+import { fetchAgenteChat } from "./api";
 
 export default function Copiloto({ ctx }) {
   const [history, setHistory] = useState([]);
@@ -20,12 +10,13 @@ export default function Copiloto({ ctx }) {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef(null);
   const lastSelectedRef = useRef(null);
+  const sugestoes = useMemo(() => buildSugestoes(ctx), [ctx?.fonte, ctx?.selecionado]);
 
   useEffect(() => {
     if (ctx.selecionado && ctx.selecionado.id !== lastSelectedRef.current) {
       lastSelectedRef.current = ctx.selecionado.id;
       const m = ctx.selecionado;
-      const briefing = `Município selecionado: ${m.apelido || m.municipio}/${m.uf}. Pergunte algo sobre incentivos, gargalos ou comparações.`;
+      const briefing = `Município selecionado: ${m.apelido || m.municipio}/${m.uf}. Pergunte sobre score, completude, gargalos ou instrumentos públicos.`;
       setHistory((h) => [...h, { role: "bot", text: briefing, kind: "briefing" }]);
     }
   }, [ctx.selecionado]);
@@ -39,23 +30,14 @@ export default function Copiloto({ ctx }) {
   async function callAgent(pergunta) {
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/agente/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sessionId,
-          message: pergunta,
-          context: {
-            municipio_selecionado: ctx?.selecionado?.municipio || null,
-            modo: ctx?.modo || null,
-          },
-        }),
+      const data = await fetchAgenteChat({
+        sessionId,
+        message: pergunta,
+        context: {
+          municipio_selecionado: ctx?.selecionado?.lookupName ?? null,
+          fonte: ctx?.fonte ?? null,
+        },
       });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`API ${res.status}: ${text}`);
-      }
-      const data = await res.json();
       return data.message || "(resposta vazia)";
     } catch (e) {
       console.error("[copiloto] agent error", e);
@@ -89,12 +71,8 @@ export default function Copiloto({ ctx }) {
       <div className="relative border-b border-hairline-strong px-5 py-4">
         <div className="flex items-center gap-2 text-[10px] tabular tracking-[0.22em] uppercase text-amber font-mono">
           <Sparkles size={11} strokeWidth={2.5} />
-          <span>Copiloto PID</span>
-          <span className="block h-1 w-1 bg-amber animate-pulse-soft ml-1"></span>
+          <span>Agente Copiloto</span>
         </div>
-        <h3 className="font-display text-xl font-light text-paper mt-1 tracking-tightest leading-[1.15]">
-          Agente de incentivos.
-        </h3>
       </div>
 
       {/* CONVERSATION (com sugestões inline quando vazia) */}
@@ -103,11 +81,11 @@ export default function Copiloto({ ctx }) {
           <div className="h-full flex flex-col">
             <p className="text-[12.5px] text-paper/65 leading-relaxed">
               {ctx.selecionado
-                ? `Pergunte sobre incentivos públicos para ${ctx.selecionado.apelido || ctx.selecionado.municipio}.`
-                : "Selecione um município no mapa para abrir um briefing. Ou pergunte algo abaixo."}
+                ? `Pergunte sobre ${ctx.fonte || "a fonte ativa"} em ${ctx.selecionado.apelido || ctx.selecionado.municipio}.`
+                : `Pergunte sobre rankings, completude e gargalos em ${ctx.fonte || "a fonte ativa"}.`}
             </p>
             <div className="mt-5 space-y-1.5">
-              {SUGESTOES.map((s) => (
+              {sugestoes.map((s) => (
                 <button
                   key={s}
                   onClick={() => handleSend(s)}
@@ -204,6 +182,32 @@ export default function Copiloto({ ctx }) {
       </form>
     </div>
   );
+}
+
+function buildSugestoes(ctx = {}) {
+  const fonte = ctx.fonte || "a fonte ativa";
+  const selecionado = ctx.selecionado;
+  const nome = selecionado
+    ? `${selecionado.apelido || selecionado.municipio}/${selecionado.uf}`
+    : null;
+
+  if (selecionado) {
+    return [
+      `Por que ${nome} aparece neste score de ${fonte}?`,
+      `Quais gargalos limitam ${nome} para ${fonte}?`,
+      `Quais instrumentos públicos podem apoiar ${nome}?`,
+      `O que preciso validar antes de priorizar ${nome}?`,
+      `Compare ${nome} com o top 3 de ${fonte}`,
+    ];
+  }
+
+  return [
+    `Quais municípios lideram o ranking de ${fonte}?`,
+    `Quais gargalos aparecem no top 10 de ${fonte}?`,
+    `Onde a completude dos dados é mais baixa em ${fonte}?`,
+    `Compare as 3 melhores oportunidades de ${fonte}`,
+    "Como interpretar este score de triagem?",
+  ];
 }
 
 function RichMessage({ text }) {
