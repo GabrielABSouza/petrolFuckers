@@ -60,10 +60,13 @@ def _build_tools() -> list[types.Tool]:
         ),
     )
 
+    # NOTA: Gemini 3 Flash Preview não permite combinar googleSearch + fileSearch
+    # no mesmo request. Mantemos fileSearch (Q&A metodológico vale mais no pitch).
+    # Para news externas (REIDI 2026 etc), usuário pode perguntar diretamente e
+    # o modelo pode usar conhecimento próprio + apontar limitação.
     return [
         types.Tool(functionDeclarations=[search_municipio_decl]),
         types.Tool(fileSearch=types.FileSearch(fileSearchStoreNames=[config.GEMINI_FILE_SEARCH_STORE_ID])),
-        types.Tool(googleSearch=types.GoogleSearch()),
     ]
 
 
@@ -98,6 +101,9 @@ def chat_turn(session_id: str, user_message: str, context: dict[str, Any] | None
             temperature=0.4,
             systemInstruction=SYSTEM_PROMPT,
             tools=_build_tools(),
+            tool_config=types.ToolConfig(
+                include_server_side_tool_invocations=True,
+            ),
         ),
         history=sess.history,
     )
