@@ -28,6 +28,7 @@ state = State()
 
 
 def _to_records(df: pd.DataFrame) -> list[dict]:
+    """DataFrame → list[dict] com NaN → None (JSON-safe)."""
     return df.replace({np.nan: None}).to_dict(orient="records")
 
 
