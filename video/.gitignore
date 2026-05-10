@@ -1,0 +1,5 @@
+node_modules/
+out/
+.remotion/
+# Screenshots gerados pela captura — recriáveis via scripts/capture.mjs
+public/*.png

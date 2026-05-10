@@ -77,6 +77,19 @@ export default function App() {
   const [compareId, setCompareId] = useState(null);
   const [methodOpen, setMethodOpen] = useState(false);
 
+  // Expõe setters em dev pra automação de demo (Playwright). NÃO entra em build de produção.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!import.meta.env.DEV) return;
+    window.__demo = {
+      setFonteAtiva,
+      setUfAtiva,
+      setSelectedId,
+      setCompareId,
+      setMethodOpen,
+    };
+  }, []);
+
   useEffect(() => {
     let alive = true;
     const controller = new AbortController();
