@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import logging
 from typing import Any
 
@@ -29,7 +30,38 @@ Analista técnico, direto, intolerante a achismo. Você fundamenta toda resposta
 - **Se a pergunta é sobre dados que você não tem**, peça por mais contexto OU diga claramente "não tenho esse dado" — nunca invente.
 - **Microcopy obrigatório:** evite "garantido", "melhor investimento", "retorno certo". Use "oportunidade candidata", "priorizar estudo", "score de triagem", "elegibilidade preliminar".
 - **Não substitua parecer técnico/jurídico/financeiro.** Mencione isso quando a pergunta cruzar essa linha.
+
+## Contexto temporal (CRÍTICO)
+**Hoje é {DATA_HOJE}.** Use isso pra contextualizar respostas:
+- Eventos passados são passados — NÃO descreva como futuros nem como "se aproximando".
+  Exemplo: a COP30 aconteceu em **novembro de 2025** em Belém. Em 2026 ela já é
+  retrospectiva, não "está chegando".
+- Linhas de crédito, leilões e regimes de incentivo têm vigências específicas.
+  Quando citar instrumentos (REIDI, FNE-Verde, BNDES Climate Fund, leilões
+  ANEEL), prefira frases como "vigente em {ANO_HOJE}" ou "na rodada mais
+  recente" e não datas hipotéticas.
+- Se o usuário perguntar sobre algo de data específica que você não tem certeza,
+  seja explícito: "não tenho como confirmar a vigência atual desse instrumento;
+  recomendo consultar a fonte oficial" — sempre melhor que inventar prazo.
 """
+
+
+_MONTHS_PT = [
+    "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+    "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
+]
+
+
+def _system_prompt_now() -> str:
+    """SYSTEM_PROMPT com a data de hoje injetada — chamado a cada chat_turn pra
+    nunca dessincronizar."""
+    today = datetime.date.today()
+    data_hoje = f"{today.day} de {_MONTHS_PT[today.month - 1]} de {today.year}"
+    return (
+        SYSTEM_PROMPT
+        .replace("{DATA_HOJE}", data_hoje)
+        .replace("{ANO_HOJE}", str(today.year))
+    )
 
 
 def _build_tools() -> list[types.Tool]:
@@ -100,7 +132,7 @@ def chat_turn(session_id: str, user_message: str, context: dict[str, Any] | None
             model=config.GEMINI_MODEL,
             config=types.GenerateContentConfig(
                 temperature=0.4,
-                systemInstruction=SYSTEM_PROMPT,
+                systemInstruction=_system_prompt_now(),
                 tools=_build_tools(),
                 tool_config=types.ToolConfig(
                     include_server_side_tool_invocations=True,
@@ -115,7 +147,7 @@ def chat_turn(session_id: str, user_message: str, context: dict[str, Any] | None
             model=config.GEMINI_MODEL,
             config=types.GenerateContentConfig(
                 temperature=0.4,
-                systemInstruction=SYSTEM_PROMPT,
+                systemInstruction=_system_prompt_now(),
                 tools=_build_tools(),
                 tool_config=types.ToolConfig(
                     include_server_side_tool_invocations=True,
