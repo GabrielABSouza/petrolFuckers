@@ -95,51 +95,104 @@ def chat_turn(session_id: str, user_message: str, context: dict[str, Any] | None
         if ctx_lines:
             full_user_msg = "\n".join(ctx_lines) + "\n\n" + user_message
 
-    chat = client.chats.create(
-        model=config.GEMINI_MODEL,
-        config=types.GenerateContentConfig(
-            temperature=0.4,
-            systemInstruction=SYSTEM_PROMPT,
-            tools=_build_tools(),
-            tool_config=types.ToolConfig(
-                include_server_side_tool_invocations=True,
+    try:
+        chat = client.chats.create(
+            model=config.GEMINI_MODEL,
+            config=types.GenerateContentConfig(
+                temperature=0.4,
+                systemInstruction=SYSTEM_PROMPT,
+                tools=_build_tools(),
+                tool_config=types.ToolConfig(
+                    include_server_side_tool_invocations=True,
+                ),
             ),
-        ),
-        history=sess.history,
-    )
+            history=sess.history,
+        )
+    except Exception:
+        log.exception("chats.create failed — limpando histórico da sessão e tentando sem")
+        sess.history = []
+        chat = client.chats.create(
+            model=config.GEMINI_MODEL,
+            config=types.GenerateContentConfig(
+                temperature=0.4,
+                systemInstruction=SYSTEM_PROMPT,
+                tools=_build_tools(),
+                tool_config=types.ToolConfig(
+                    include_server_side_tool_invocations=True,
+                ),
+            ),
+        )
 
-    response = chat.send_message(full_user_msg)
+    try:
+        response = chat.send_message(full_user_msg)
+    except Exception:
+        log.exception("send_message inicial falhou")
+        return {
+            "message": "Não consegui chegar no Gemini agora. Tenta de novo em alguns segundos.",
+            "citations": [],
+            "tools_used": [],
+            "session_id": session_id,
+        }
+
     tools_used: list[str] = []
     max_iters = 8
     hit_limit = False
 
     for i in range(max_iters):
-        fcs = getattr(response, "function_calls", None) or []
+        try:
+            fcs = getattr(response, "function_calls", None) or []
+        except Exception:
+            log.exception("acessando function_calls falhou")
+            fcs = []
         if not fcs:
             break
+
         function_responses = []
         for fc in fcs:
-            tools_used.append(fc.name)
-            log.info("agent dispatching tool=%s args=%s", fc.name, dict(fc.args or {}))
+            # Acesso a fc.name / fc.args pode falhar se SDK retornar shape inesperado
             try:
-                result = dispatch(fc.name, dict(fc.args or {}))
-            except Exception as e:  # noqa: BLE001 — qualquer erro vira input pro LLM
-                log.exception("dispatch crashed for %s", fc.name)
+                fc_name = getattr(fc, "name", None) or "unknown"
+                fc_args = dict(getattr(fc, "args", None) or {})
+            except Exception:
+                log.exception("introspecção de function_call falhou")
+                continue
+
+            tools_used.append(fc_name)
+            log.info("agent dispatching tool=%s args=%s", fc_name, fc_args)
+
+            try:
+                result = dispatch(fc_name, fc_args)
+            except Exception as e:  # noqa: BLE001
+                log.exception("dispatch crashed for %s", fc_name)
                 result = {"error": f"{type(e).__name__}: {e}"}
-            function_responses.append(
-                types.Part.from_function_response(name=fc.name, response=result)
-            )
+
+            try:
+                function_responses.append(
+                    types.Part.from_function_response(name=fc_name, response=result)
+                )
+            except Exception:
+                log.exception("Part.from_function_response falhou para %s", fc_name)
+
+        if not function_responses:
+            # Nada pra mandar de volta — assumimos que o response final já está com o modelo
+            break
+
         try:
             response = chat.send_message(function_responses)
         except Exception:
             log.exception("send_message after function responses failed")
             return {
-                "message": "Tive um problema ao processar a resposta — tenta refazer a pergunta?",
+                "message": "Tive um problema ao processar a resposta — pode refazer a pergunta?",
                 "citations": [],
                 "tools_used": tools_used,
                 "session_id": session_id,
             }
-        if i == max_iters - 1 and (getattr(response, "function_calls", None) or []):
+
+        try:
+            still_pending = bool(getattr(response, "function_calls", None) or [])
+        except Exception:
+            still_pending = False
+        if i == max_iters - 1 and still_pending:
             hit_limit = True
 
     # Citations (grounding) — best-effort, não trava se SDK mudar shape
