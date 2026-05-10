@@ -8,7 +8,7 @@ dependencies = [
     "uvicorn[standard]>=0.27,<0.40",
     "pandas>=2.0,<3.0",
     "pyarrow>=14,<20",
-    "pydantic>=2.5,<3",
+    "pydantic>=2.9.0,<3",
     "google-genai>=2.0,<3.0",
     "python-dotenv>=1.0",
 ]
