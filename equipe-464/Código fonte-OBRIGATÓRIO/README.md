@@ -93,6 +93,21 @@ npm run dev
 # Front em http://localhost:5173
 ```
 
+> **Importante (após troca de branch / rebase / stash):** se notar
+> Tailwind quebrado, layout desmontado, botões com aparência nativa do
+> browser, **NÃO** insista no `npm run dev` — use `npm run dev:safe`
+> (mata processo travado na 5173 + limpa cache local do Vite + sobe
+> com `--force`). Veja seção **Troubleshooting** mais abaixo.
+
+### Hook automático (uma vez por clone)
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Ativa o `post-checkout` que mata o Vite automaticamente em qualquer
+troca de branch, evitando o cenário acima. Uma vez por máquina.
+
 ### 3. Testar
 
 Abra `http://localhost:5173` no navegador. Selecione um município no mapa. No painel direito (Copiloto), pergunte:
@@ -193,6 +208,44 @@ Todas justificadas em `docs/`. Consultar antes de mexer em escolha de stack, lay
 - **Sem filtro de aptidão geográfica** por fonte (overlay com Atlas Eólico CEPEL + Global Solar Atlas + IBGE PAM no roadmap).
 - **Agente sem grounding em busca web** (Gemini 3 Flash hoje não permite combinar `googleSearch` + `fileSearch` no mesmo request; priorizamos fileSearch). Roadmap: fallback via função custom chamando Google Custom Search API.
 - **Sem testes automatizados, CI ou observability profunda** — escopo deliberadamente fora do MVP, registrado no design doc do backend v2.
+
+---
+
+## Troubleshooting
+
+### Tailwind sumiu, layout desmontado, botões nativos do browser
+
+Sintoma típico após `git switch`, `git stash apply` ou rebase **com o
+Vite ainda rodando**: Vite serve bundles do estado anterior, JSX da
+branch atual não bate com o CSS, parece que o Tailwind sumiu.
+
+**Fix imediato:**
+```bash
+cd web
+npm run dev:safe        # mata processo na 5173 + limpa .vite/ + sobe --force
+```
+
+**Fix preventivo** (uma vez por clone): ativar o git hook que mata
+o Vite automaticamente após qualquer troca de branch:
+```bash
+git config core.hooksPath .githooks
+```
+
+**Causa raiz:** o cache do Vite (`web/.vite/deps/`) precisa estar
+sincronizado com `package.json` da branch atual. Se Vite continua
+rodando enquanto o git troca arquivos debaixo, o cache fica
+inconsistente. O hook + `dev:safe` resolvem isso definitivamente.
+
+### Backend reclama de `GEMINI_FILE_SEARCH_STORE_ID` vazio
+
+Você esqueceu de rodar o setup script. Veja seção "1. Backend" acima,
+passo do `python scripts/setup_file_search.py`.
+
+### Agente responde "Erro ao consultar o agente: API 503"
+
+A API levantou mas a env var `GEMINI_API_KEY` ou `STORE_ID` não foi
+carregada. Cheque `api/.env`; se rodando em produção, cheque os
+Variables no painel Railway.
 
 ---
 
