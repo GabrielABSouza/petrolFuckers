@@ -110,9 +110,10 @@ def chat_turn(session_id: str, user_message: str, context: dict[str, Any] | None
 
     response = chat.send_message(full_user_msg)
     tools_used: list[str] = []
-    max_iters = 6
+    max_iters = 8
+    hit_limit = False
 
-    for _ in range(max_iters):
+    for i in range(max_iters):
         fcs = getattr(response, "function_calls", None) or []
         if not fcs:
             break
@@ -120,26 +121,69 @@ def chat_turn(session_id: str, user_message: str, context: dict[str, Any] | None
         for fc in fcs:
             tools_used.append(fc.name)
             log.info("agent dispatching tool=%s args=%s", fc.name, dict(fc.args or {}))
-            result = dispatch(fc.name, dict(fc.args or {}))
+            try:
+                result = dispatch(fc.name, dict(fc.args or {}))
+            except Exception as e:  # noqa: BLE001 — qualquer erro vira input pro LLM
+                log.exception("dispatch crashed for %s", fc.name)
+                result = {"error": f"{type(e).__name__}: {e}"}
             function_responses.append(
                 types.Part.from_function_response(name=fc.name, response=result)
             )
-        response = chat.send_message(function_responses)
+        try:
+            response = chat.send_message(function_responses)
+        except Exception:
+            log.exception("send_message after function responses failed")
+            return {
+                "message": "Tive um problema ao processar a resposta — tenta refazer a pergunta?",
+                "citations": [],
+                "tools_used": tools_used,
+                "session_id": session_id,
+            }
+        if i == max_iters - 1 and (getattr(response, "function_calls", None) or []):
+            hit_limit = True
 
-    citations = []
-    candidates = getattr(response, "candidates", None) or []
-    for cand in candidates:
-        gm = getattr(cand, "grounding_metadata", None)
-        if gm and getattr(gm, "grounding_chunks", None):
-            for ch in gm.grounding_chunks:
+    # Citations (grounding) — best-effort, não trava se SDK mudar shape
+    citations: list[dict[str, str]] = []
+    try:
+        for cand in getattr(response, "candidates", None) or []:
+            gm = getattr(cand, "grounding_metadata", None)
+            for ch in getattr(gm, "grounding_chunks", None) or []:
                 web = getattr(ch, "web", None)
                 if web:
-                    citations.append({"title": web.title, "uri": web.uri})
+                    citations.append({"title": web.title or "", "uri": web.uri or ""})
+    except Exception:
+        log.exception("citations extraction failed (non-fatal)")
 
-    store.update(session_id, chat.get_history())
+    # Extrai texto de forma defensiva — response.text pode lançar quando há
+    # tool_calls residuais ou quando a resposta vem só com function_call.
+    text = ""
+    try:
+        text = response.text or ""
+    except Exception:
+        log.warning("response.text raised; extracting text parts manually")
+        try:
+            parts = response.candidates[0].content.parts
+            text = "".join(getattr(p, "text", "") or "" for p in parts)
+        except Exception:
+            log.exception("manual text extraction failed")
+            text = ""
+
+    if not text and hit_limit:
+        text = (
+            "Cheguei no limite de consultas pra montar a resposta. "
+            "Pode reformular a pergunta de forma mais específica? "
+            "(ex: 'top 5 H2 Verde em PA' em vez de pedir várias coisas de uma vez)"
+        )
+    elif not text:
+        text = "Não consegui formular uma resposta. Pode tentar novamente?"
+
+    try:
+        store.update(session_id, chat.get_history())
+    except Exception:
+        log.exception("session update failed (non-fatal)")
 
     return {
-        "message": response.text or "",
+        "message": text,
         "citations": citations,
         "tools_used": tools_used,
         "session_id": session_id,
