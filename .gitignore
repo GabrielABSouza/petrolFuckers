@@ -21,6 +21,9 @@ node_modules/
 .next/
 dist/
 build/
+# Vite cache (NUNCA committar — causa CSS/HMR quebrado em troca de branch)
+.vite/
+**/.vite/
 
 # Outputs binários efêmeros (CSVs e JSONs em data/ SÃO versionados)
 *.parquet

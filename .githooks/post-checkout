@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Hook automático: depois de qualquer git checkout/switch/merge, mata o Vite
+# rodando na porta 5173 (e o Python/uvicorn na 8000) pra evitar serving de
+# bundles antigos contra código novo.
+#
+# Args do post-checkout: $1=ref antigo, $2=ref novo, $3=branch flag (1) ou file (0)
+# Só age em troca de branch (flag=1).
+
+if [ "${3:-0}" != "1" ]; then
+  exit 0  # checkout de arquivo, não de branch — ignora
+fi
+
+# Vite (front)
+PIDS_VITE=$(lsof -ti:5173 2>/dev/null || true)
+if [ -n "$PIDS_VITE" ]; then
+  echo "[post-checkout] Matando Vite na 5173 (troca de branch)" >&2
+  # shellcheck disable=SC2086
+  kill -TERM $PIDS_VITE 2>/dev/null || true
+fi
+
+# Uvicorn / FastAPI (back) — opcional, descomenta se quiser também
+# PIDS_API=$(lsof -ti:8000 2>/dev/null || true)
+# if [ -n "$PIDS_API" ]; then
+#   echo "[post-checkout] Matando API na 8000 (troca de branch)" >&2
+#   kill -TERM $PIDS_API 2>/dev/null || true
+# fi
+
+# Limpa cache do Vite (se existir, no working tree atual)
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+if [ -d "$REPO_ROOT/web/.vite" ]; then
+  rm -rf "$REPO_ROOT/web/.vite"
+fi
+if [ -d "$REPO_ROOT/web/node_modules/.vite" ]; then
+  rm -rf "$REPO_ROOT/web/node_modules/.vite"
+fi
+
+exit 0
